@@ -15,7 +15,7 @@ class Configer
 
     public function html($html)
     {
-        $f = ROOT . 'configer/html/' . $html . '.html';
+        $f =  'html/' . $html . '.html';
         extract($this->vars, EXTR_OVERWRITE);
         ob_start();
         if (PHP_SAPI !== 'cli') {

@@ -2,14 +2,15 @@
 declare (strict_types = 1);
 
 namespace lim;
-use function Swoole\Coroutine\run;
 
+use function Swoole\Coroutine\run;
 
 class Console
 {
 
     function __construct($argv)
     {
+
         /**
          *
          * S: websocket服务
@@ -44,16 +45,38 @@ class Console
     public function run($o, $argv)
     {
 
-        if (empty($o)&&!empty($argv)) {
-            $act = array_shift($argv);
-            switch ($act) {
-                case 'clear':
-                    
-                    break;
-                
-                default:
-                    // code...
-                    break;
+        if (empty($o)) {
+            if (empty($argv)) {
+
+                echo "Less is More!" . PHP_EOL;
+                echo PHP_EOL . '复制下面的命令并执行以便快速运行' . PHP_EOL;
+                $s = 'alias ' . config('server')['name'] . '=\'/www/server/php/80/bin/php ' . __FILE__ . '\'';
+                echo $s . PHP_EOL . PHP_EOL;
+
+                if (!is_dir(ROOT . 'logs')) {
+                    mkdir(ROOT . 'logs', 0777);
+                    wlog('mkdir logs');
+                }
+
+                if (!is_dir(ROOT . 'public')) {
+                    mkdir(ROOT . 'public', 0777);
+                    copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
+                    wlog('mkdir public copy index.php');
+                }
+
+            } else {
+                $act = array_shift($argv);
+                switch ($act) {
+                    case 'dev':
+                            $sync = 'cp -r '.dirname(__DIR__).' /code/core/';
+                        shell_exec($sync);
+                        wlog($sync);
+                        break;
+
+                    default:
+                        echo 'aaa';
+                        break;
+                }
             }
         }
 
@@ -61,10 +84,10 @@ class Console
         if ($fn = $o['F'] ?? null) {
             try {
                 run(fn() => $fn(...$argv));
-            } catch (\Swoole\ExitException  $e) {
+            } catch (\Swoole\ExitException $e) {
                 print_r($e);
             }
-            
+
         }
 
         //运行对象
@@ -76,7 +99,7 @@ class Console
         if (isset($o['S'])) {
             switch ($o['S']) {
                 case 'run':
-                    if(isset($o['d'])){
+                    if (isset($o['d'])) {
                         Server::run(true);
                     } else {
                         Server::run();
@@ -91,7 +114,7 @@ class Console
                     }
                     run(function () use ($o) {
                         \swoole\timer::clearAll();
-                        $pid = file_get_contents( '/var/log/'.config('server.name').'.pid');
+                        $pid = file_get_contents('/var/log/' . config('server.name') . '.pid');
                         $num = $o['S'] == 'stop' ? 15 : 10;
                         $n   = [15 => '停止', 10 => '重启'];
                         $ret = \co::exec('kill -' . $num . ' ' . $pid);
@@ -102,7 +125,6 @@ class Console
                     break;
             }
         }
-
 
     }
 }

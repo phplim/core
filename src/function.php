@@ -1,6 +1,13 @@
 <?php
 declare (strict_types = 1);
+
+define('ROOT', strstr(__DIR__, 'vendor', true));
+define('APP', ROOT . 'app/');
+
+spl_autoload_register('loader');
+
 use \lim\Server;
+
 function config($key = null)
 {
     $arr = explode('.', $key);
@@ -13,7 +20,7 @@ function config($key = null)
     if (!is_file($file)) {
         return null;
     }
-    $ret                            = include $file;
+    $ret                       = include $file;
     \lim\App::$config[$arr[0]] = $ret;
     return !isset($arr[1]) ? $ret : ($ret[$arr[1]] ?? null);
 }
@@ -147,4 +154,8 @@ function db($db = 'db')
 
 if (is_file(APP . 'function.php')) {
     require APP . 'function.php';
+}
+
+if (is_file(APP . 'config/app.php')) {
+    require APP . 'config/app.php';
 }
