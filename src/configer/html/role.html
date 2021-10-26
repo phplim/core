@@ -1,0 +1,143 @@
+<?include "nav.html"?>
+<div class="wrap">
+	<div class="tool">
+		<button id="insert" lay-submit class="layui-btn">添加</button>
+		<button id="delete" lay-submit class="layui-btn">删除</button>
+		<button id="auth" lay-submit class="layui-btn">权限</button>
+	</div>
+	<table class="layui-hide" id="table"></table>
+	<script id="status" type="text/html">
+		<div class="layui-form">
+			<input type="checkbox" name="status" id="{{d.id}}" value="{{d.status}}" lay-skin="switch" lay-text="启用|关闭"
+				lay-filter="status" {{ d.status == 1 ? 'checked' : '' }}>
+		</div>
+	</script>
+</div>
+<?include "footer.html"?>
+<script>
+	form.on('submit', function(e) {
+		console.log(e)
+		switch (e.elem.id) {
+			case 'auth':
+				if(!tmp){
+					layer.msg('请选择要赋权的角色')
+					return;
+				}
+				console.log(tmp.data)
+				layer.open({
+					title: tmp.data.name+'权限修改',
+					type: 2,
+					shade: 0,
+					area: ['750px', '500px'],
+					content: 'updateRole.html#'+tmp.data.id,
+					zIndex: layer.zIndex,
+					success: function(layero) {
+						layer.setTop(layero);
+					}
+				});
+				console.log(e.elem.id)
+				break;
+			case 'insert':
+				// layer('添加接口','route_add',200,350);
+				layer.open({
+					title: '添加接口',
+					type: 2,
+					id: 'menu_add',
+					shade: 0,
+					area: ['200px', '350px'],
+					content: 'addmethod.html',
+					zIndex: layer.zIndex,
+					success: function(layero) {
+						layer.setTop(layero);
+					}
+				});
+				break;
+			case 'search':
+				table.reload('Reload', {
+					page: {
+						curr: 1
+					},
+					where: e.field
+				});
+				break;
+			case 'delete':
+				post('api', 'delete', {
+					id: tmp.data.id
+				})
+				break;
+		}
+		return false;
+	});
+
+	form.on('switch', function(e) {
+		let data = {
+			id: parseInt(e.elem.id)
+		}
+		data[e.elem.name] = e.elem.checked == true ? 1 : 0
+		console.log(data)
+		post('api', 'update', data)
+	});
+
+	table.on('radio', function(obj) {
+		tmp = obj
+		console.log(obj)
+	});
+
+	table.on('edit()', function(obj) { 
+		let data = {
+			id: parseInt(obj.data.id)
+		}
+		data[obj.field] = obj.value
+		console.log(data);
+		post('api', 'update', data)
+	});
+
+	table.render({
+		method: 'post',
+		response: {
+			statusCode: 1
+		},
+		elem: '#table',
+		url: '/configer/role',
+		headers: {
+			token: 'ywcm888.',
+			action: 'select'
+		},
+		id: 'Reload',
+		defaultToolbar: ['filter', 'exports'],
+		cols: [
+			[{
+					type: "radio",
+					width: 50
+				},
+				{
+					field: 'id',
+					title: 'ID',
+					edit: true,
+					width: 75,
+					align: "center"
+				},
+				{
+					field: 'name',
+					title: '角色',
+					width: 125,
+					edit: true,
+					align: "center"
+				},
+				{
+					field: 'auth',
+					title: '权限',
+					edit: true,
+				},
+				{
+					field: 'status',
+					title: '状态',
+					toolbar: '#status',
+					align: "center",
+					width: 100
+				}
+			]
+		],
+		// limit:10
+	});
+</script>

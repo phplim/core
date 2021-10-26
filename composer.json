@@ -13,7 +13,8 @@
     }],
     "autoload": {
         "psr-4": {
-            "lim\\": "src\\core"
+            "lim\\": "src\\core",
+            "configer\\": "src\\configer"
         },
         "files": ["src/function.php"]
     },

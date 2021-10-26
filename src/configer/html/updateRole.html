@@ -1,0 +1,59 @@
+<?include "header.html";?>
+<div class="wrap">
+	<div id="view"></div>
+</div>
+<?include "footer.html"?>
+
+<script id="demo" type="text/html">
+	<form class="layui-form" lay-filter="test1" style="text-align: left;">
+		
+		{{# layui.each(d.data, function(index, item){ }}
+		<div>
+			<input type="checkbox" id="v{{index}}" lay-filter="all" lay-skin="primary" title="{{ item.name }}">
+			<div id="v{{index}}">
+				{{# layui.each(item.sub, function(k, v){ }}
+					<input type="checkbox" name="{{v.id}}"  lay-skin="primary" title="{{ v.name }}">
+				{{# }); }}
+			</div>
+		</div>
+		{{# }); }}
+		
+		<button class="layui-btn layui-btn-primary" lay-submit="add">确定</button>
+	</form>
+</script>
+
+
+<script>
+	console.log(window.location.hash.substr(1))
+	post('api', 'role', {}, e => {
+		data = e;
+		console.log(e.data)
+		var getTpl = demo.innerHTML,
+			view = document.getElementById('view');
+		laytpl(getTpl).render(e, function(html) {
+			view.innerHTML = html;
+			form.render();
+		})
+	})
+
+	form.on('checkbox(all)', function(data) {
+		if (data.elem.checked) {
+			$('#'+data.elem.id+' input').prop('checked', true)
+		} else {
+			$('#'+data.elem.id+' input').prop('checked', false)
+		}
+		form.render()
+	});
+
+	// form.on('checkbox(encrypt)', function(data) {
+	// 	var data1 = form.val("test1");
+	// 	console.log(data1)
+	// });
+	
+	form.on('submit', function(e) {
+		let data= {id:window.location.hash.substr(1),auth:Object.keys(e.field)}
+		console.log(Object.keys(e.field))
+		post('role', 'update', data)
+		return false;
+	});
+</script>

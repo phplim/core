@@ -1,0 +1,19 @@
+<?include "header.html"?>
+<form class="layui-form">
+	<input class="layui-input" name="mid" placeholder="ID" />
+	<input class="layui-input" name="name" placeholder="名称" />
+	<input class="layui-input" name="class" placeholder="类" />
+	<input class="layui-input" name="url" placeholder="URL" />
+	<button class="layui-btn layui-btn-primary" lay-submit="add">添加</button>
+</form>
+<?include "footer.html"?>
+<script>
+	
+
+	
+	form.on('submit', function(e) {
+		console.log(e.field)
+		post('api', 'insert', e.field)
+		return false;
+	});
+</script>

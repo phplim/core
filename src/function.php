@@ -1,11 +1,11 @@
 <?php
 declare (strict_types = 1);
-use \lim\core\Server;
+use \lim\Server;
 function config($key = null)
 {
     $arr = explode('.', $key);
 
-    if ($ret = \lim\core\App::$config[$arr[0]] ?? null) {
+    if ($ret = \lim\App::$config[$arr[0]] ?? null) {
         return !isset($arr[1]) ? $ret : ($ret[$arr[1]] ?? null);
     }
 
@@ -14,7 +14,7 @@ function config($key = null)
         return null;
     }
     $ret                            = include $file;
-    \lim\core\App::$config[$arr[0]] = $ret;
+    \lim\App::$config[$arr[0]] = $ret;
     return !isset($arr[1]) ? $ret : ($ret[$arr[1]] ?? null);
 }
 
@@ -60,7 +60,7 @@ function loader($class)
 
 function rule($rule, $data)
 {
-    return (new \lim\core\Rule($rule, $data));
+    return (new \lim\Rule($rule, $data));
 }
 
 function loadFn($dir)
@@ -142,7 +142,7 @@ function wlog($v = '', $f = '')
 
 function db($db = 'db')
 {
-    return (new \lim\core\Db())->use($db);
+    return (new \lim\Db())->use($db);
 }
 
 if (is_file(APP . 'function.php')) {

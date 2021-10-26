@@ -1,0 +1,48 @@
+<?include "header.html"?>
+<form class="layui-form">
+	<select id="class" name="class"></select>
+	<input class="layui-input" name="mid" placeholder="ID" />
+	<input class="layui-input" name="name" placeholder="名称" />
+	<input class="layui-input" name="method" placeholder="方法" />
+	<input class="layui-input" name="url" placeholder="URL" />
+	<button class="layui-btn layui-btn-primary" lay-submit="add">添加</button>
+</form>
+
+<script id="demo" type="text/html">
+	<select name="class">
+		<option value="">分组</option>
+		{{# layui.each(d.data, function(index, item){ }}
+			<option value="{{item.class}}">{{ item.name }}</option>
+			{{# }); }}
+	</select>
+</script>
+<?include "footer.html"?>
+<script>
+	var classer = [];
+	post('api', 'class', {}, e => {
+		classer = e.data;
+		console.log(e)
+		var getTpl = demo.innerHTML,
+			view = document.getElementById('class');
+		laytpl(getTpl).render(e, function(html) {
+			view.innerHTML = html;
+			form.render();
+		})
+	})
+	form.on('submit', function(e) {
+		data = e.field;
+		var v = classer.find(i => i.class == e.field.class);
+		data.top = v.mid;
+		
+		if(e.field.url!=''){
+			data.url = v.url+'/'+e.field.url;
+		} else {
+			data.url = v.url+'/'+e.field.method;
+		}
+		
+		console.log(data)
+
+		post('api', 'insert', data)
+		return false;
+	});
+</script>

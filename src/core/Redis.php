@@ -66,7 +66,7 @@ class RedisQuery
         } else {
             $this->db = $db;
             if (!isset(Server::$RedisPool[$this->db])) {
-                \lim\core\Redis::init($db);
+                \lim\Redis::init($db);
             }
             $this->redis = Server::$RedisPool[$this->db]->get();
         }
@@ -77,6 +77,5 @@ class RedisQuery
         if (PHP_SAPI == 'cli'){
             Server::$RedisPool[$this->db]->put($this->redis);
         }
-        
     }
 }
