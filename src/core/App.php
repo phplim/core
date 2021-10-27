@@ -17,7 +17,7 @@ class App
     public function open($server, $request)
     {
         try {
-            App::speed($request->server['remote_addr'] . 'ws');
+            // App::speed($request->server['remote_addr'] . 'ws');
         } catch (\Swoole\ExitException $e) {
             $server->push((int) $request->fd, $e->getStatus());
             $server->disconnect($request->fd);
@@ -34,12 +34,17 @@ class App
     public function message($server, $frame)
     {
         try {
-
-            if (!$info = json_decode($frame->data, true) ?? null) {
+            
+            if (substr($frame->data, 0,1)!='{') {
+                $frame->data = self::crypt($frame->data,true);
+            } 
+            wlog($frame->data);
+            if (!$info = json_decode((string)$frame->data, true) ?? null) {
                 self::push('非法请求');
             }
 
             list($path,$class, $method, $auth) = App::parseUri($info['action']);
+
             $req                         = new \StdClass();
             $req->class                  = $class;
             $req->method                 = $method;
@@ -269,9 +274,27 @@ class App
                 err('token过期', 301);
             }
 
-            return array_combine(['uid','role','auth'],$tk??[]);
+            //api接口访问 非用户访问
+            if(empty($tk)){
+                return null;
+            }
+
+            return array_combine(['uid','role','auth'],$tk);
         }
 
         return base64_encode(openssl_encrypt(time() . '|' . $v, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
+    }
+
+    public static function crypt($data='',$de=false)
+    {
+        if ($de) {
+            return openssl_decrypt(base64_decode($data), TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV);
+        }
+
+        if (is_array($data)) {
+            $data = json_encode($data);
+        }
+
+        return base64_encode(openssl_encrypt($data, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV)); 
     }
 }
