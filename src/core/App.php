@@ -34,11 +34,11 @@ class App
     public function message($server, $frame)
     {
         try {
-            
+            // wlog(' s '.$frame->data);
             if (substr($frame->data, 0,1)!='{') {
                 $frame->data = self::crypt($frame->data,true);
             } 
-            wlog($frame->data);
+            
             if (!$info = json_decode((string)$frame->data, true) ?? null) {
                 self::push('非法请求');
             }
