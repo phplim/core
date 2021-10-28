@@ -18,9 +18,9 @@ class Api
 
     public function check()
     {
-        $arr    = explode('\\', $this->req->class);
+        $arr = explode('\\',$this->req->class);
         $method = array_pop($arr);
-        $path   = ROOT . implode('/', array_merge($arr, ['rule', $method])) . '.php';
+        $path = ROOT.implode('/',array_merge($arr,['rule',$method])).'.php';
         if (is_file($path)) {
             $rules = include $path;
 
@@ -58,7 +58,6 @@ class Api
 
             rule($rule, $this->data)->break();
         }
-
         return $this;
     }
 

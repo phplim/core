@@ -4,7 +4,7 @@ namespace lim;
 
 class App
 {
-    public static  $cache = null, $config = [];
+    public static $cache = null, $config = [];
 
     /**
      * WebSocket握手
@@ -34,24 +34,25 @@ class App
     public function message($server, $frame)
     {
         try {
-            // wlog(' s '.$frame->data);
-            if (substr($frame->data, 0,1)!='{') {
-                $frame->data = self::crypt($frame->data,true);
-            } 
-            
-            if (!$info = json_decode((string)$frame->data, true) ?? null) {
+
+            if (substr($frame->data, 0, 1) != '{') {
+                $frame->data = self::crypt($frame->data, true);
+            }
+            // wlog($frame->data);
+            if (!$info = json_decode((string) $frame->data, true) ?? null) {
                 self::push('非法请求');
             }
 
-            list($path,$class, $method, $auth) = App::parseUri($info['action']);
+            list($path, $class, $method, $auth) = App::parseUri($info['action']);
 
-            $req                         = new \StdClass();
-            $req->class                  = $class;
-            $req->method                 = $method;
-            $req->auth                   = $auth;
-            $req->all                    = $info['data'];
-            $req->header                 = ['token' => $info['token']];
-            $req->path                   = $path;
+            $req         = new \StdClass();
+            $req->class  = $class;
+            $req->method = $method;
+            $req->auth   = $auth;
+            $req->all    = $info['data'];
+            $req->header = ['token' => $info['token']];
+            $req->path   = $path;
+            $req->fd   = $frame->fd;
 
             (new $class($req))->auth()->check()->before()->$method();
 
@@ -146,8 +147,8 @@ class App
         $post = !empty($_POST) ? $_POST : json_decode(file_get_contents("php://input"), true);
         $all  = array_merge($get, $post ?? []);
 
-        list($path,$class, $method, $auth) = App::parseUri($_SERVER['REQUEST_URI']);
-        $req                         = new \StdClass();
+        list($path, $class, $method, $auth) = App::parseUri($_SERVER['REQUEST_URI']);
+        $req                                = new \StdClass();
         foreach ($_SERVER as $k => $v) {
             $k = strtolower($k);
             if (str_contains($k, 'http')) {
@@ -159,7 +160,7 @@ class App
         $req->class        = $class;
         $req->method       = $method;
         $req->auth         = $auth;
-        $req->path                   = $path;
+        $req->path         = $path;
         (new $class($req))->auth()->check()->before()->$method();
     }
 
@@ -184,16 +185,16 @@ class App
             $post = $request->post ?? json_decode($request->getContent(), true);
             $all  = array_merge($get ?? [], $post ?? []);
 
-            list($path,$class, $method, $auth) = $a=App::parseUri($request->server['request_uri']);
-            $req                         = new \StdClass();
-            $req->header                 = $request->header;
-            $req->header['ip']           = $request->header['ip'] ?? $request->server['remote_addr'];
-            $req->all                    = $all;
-            $req->class                  = $class;
-            $req->method                 = $method;
-            $req->auth                   = $auth;
-            $req->path                   = $path;
-            $ret = (new $class($req))->auth()->check()->before()->$method();
+            list($path, $class, $method, $auth) = $a = App::parseUri($request->server['request_uri']);
+            $req                                = new \StdClass();
+            $req->header                        = $request->header;
+            $req->header['ip']                  = $request->header['ip'] ?? $request->server['remote_addr'];
+            $req->all                           = $all;
+            $req->class                         = $class;
+            $req->method                        = $method;
+            $req->auth                          = $auth;
+            $req->path                          = $path;
+            $ret                                = (new $class($req))->auth()->check()->before()->$method();
 
             $response->end($ret);
 
@@ -234,11 +235,12 @@ class App
     {
         $uri = explode('?', strtolower($uri))[0];
 
-        if (str_starts_with($uri, '/configer')) {
-            $res = [$uri,'\\configer\\Configer', explode('/', $uri)[2] ?? 'index', 0];
+        if (str_starts_with($uri, '/configer') && APP_ENV=='dev') {
+   
+            $res = [$uri, '\\configer\\Configer', explode('/', $uri)[2] ?? 'index', 0];
             return $res;
         }
-        
+
         $route = Server::$route;
 
         if (isset($route[$uri])) {
@@ -275,17 +277,17 @@ class App
             }
 
             //api接口访问 非用户访问
-            if(empty($tk)){
+            if (empty($tk)) {
                 return null;
             }
 
-            return array_combine(['uid','role','auth'],$tk);
+            return array_combine(['uid', 'role', 'auth'], $tk);
         }
 
         return base64_encode(openssl_encrypt(time() . '|' . $v, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
     }
 
-    public static function crypt($data='',$de=false)
+    public static function crypt($data = '', $de = false)
     {
         if ($de) {
             return openssl_decrypt(base64_decode($data), TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV);
@@ -295,6 +297,6 @@ class App
             $data = json_encode($data);
         }
 
-        return base64_encode(openssl_encrypt($data, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV)); 
+        return base64_encode(openssl_encrypt($data, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
     }
 }

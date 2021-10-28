@@ -6,17 +6,13 @@ use \swoole\Timer;
 
 class Server
 {
-    public static $role = null, $route = null, $cache, $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null;
+    public static $role = null, $route = null, $cache,$ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null;
 
     public static function run($daemonize = false)
     {
         self::$cache = new \Yac();
 
-        if (is_file(ROOT . 'app.ini')) {
-            self::$ini = parse_ini_file(ROOT . 'app.ini', true);
-        }
-
-        \app\loader::init();
+        \app\Loader::init();
 
         self::$config                     = config('server');
         self::$config['set']['daemonize'] = $daemonize;
@@ -56,16 +52,13 @@ class Server
                 opcache_reset();
             }
 
-            
-
             if ($server->taskworker) {
                 $id = $workerId - $server->setting['worker_num'];
                 if ($id == 0) {
                     cli_set_process_title(self::$config['name'] . '-boot');
                     if (class_exists('\app\loader')) {
                         $loader = new \app\loader;
-                        // $loader->init();
-                        if (!isset(self::$ini['dev']) && method_exists($loader, 'run')) {
+                        if (APP_ENV!='dev' && method_exists($loader, 'run')) {
                             $loader->run();
                         }
                     }
