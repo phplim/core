@@ -4,7 +4,7 @@ declare (strict_types = 1);
 namespace lim;
 
 use function Swoole\Coroutine\run;
-
+use \lim\Server;
 class Console
 {
 
@@ -45,6 +45,7 @@ class Console
     public function run($o, $argv)
     {
 
+
         if (empty($o)) {
             if (empty($argv)) {
 
@@ -67,8 +68,8 @@ class Console
             } else {
                 $act = array_shift($argv);
                 switch ($act) {
-                    case 'dev':
-                            $sync = 'cp -r '.dirname(__DIR__).' /code/core/';
+                    case 'build':
+                            $sync = 'cp -r '.dirname(__DIR__).' /code/php/core/';
                         shell_exec($sync);
                         wlog($sync);
                         break;
@@ -99,10 +100,12 @@ class Console
         if (isset($o['S'])) {
             switch ($o['S']) {
                 case 'run':
+
                     if (isset($o['d'])) {
-                        Server::run(true);
+                        \lim\Server::run(true);
                     } else {
                         Server::run();
+                        return;
                     }
                     break;
                 case 'stop':

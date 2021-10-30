@@ -1,79 +1,19 @@
 <?php
 declare (strict_types = 1);
-use function \Swoole\Coroutine\run;
 define('ROOT', strstr(__DIR__, 'vendor', true));
 define('APP', ROOT . 'app/');
 
-loadConfig();
-
-function loadConfig()
-{
-    $dir = APP . 'config';
-    if ($handle = opendir($dir)) {
-        while (($file = readdir($handle)) !== false) {
-            if (($file == ".") || ($file == "..")) {
-                continue;
-            }
-            $path = $dir . '/' . $file;
-
-            if (is_dir($path)) {
-                continue;
-            }
-            $name = strstr($file, '.', true);
-            // wlog($path . ' ' . $name);
-            $config[$name] = include $path;
-        }
-        closedir($handle);
-    }
-
-    define('LIM_CONF', $config);
-
-    if (PHP_SAPI == 'cli') {
-        run(function () {
-            $ext = \lim\Db::table('lim_config')->cols('key,value,type')->select();
-            foreach ($ext as $k => $v) {
-
-                if (in_array(substr($v['value'], 0, 1), ['{', '['])) {
-                    $v['value'] = json_decode($v['value'], true);
-                    
-                }
-                if ($v['type'] == 1) {
-                    define($v['key'], $v['value']);
-                }
-            }
-        });
-    } else {
-        $ext = \lim\Db::table('lim_config')->cols('key,value,type')->select();
-        foreach ($ext as $k => $v) {
-            if (in_array(substr($v['value'], 0, 1), ['{', '['])) {
-                $v['value'] = json_decode($v['value'], true);
-            }
-            if ($v['type'] == 1) {
-                define($v['key'], $v['value']);
-            }
-        }
-    }
-
-    if (is_file(ROOT . 'app.ini')) {
-        $ini = parse_ini_file(ROOT . 'app.ini', true);
-        foreach ($ini as $k => $v) {
-            define($k, $v);
-        }
-    }
-}
-
-
 spl_autoload_register('loader');
+new \lim\Config;
 
 use \lim\Server;
 
 function config($key = null)
 {
-    $arr = explode('.', $key);
-
-    if ($ret = LIM_CONF[$arr[0]] ?? null) {
-        return !isset($arr[1]) ? $ret : ($ret[$arr[1]] ?? null);
+    if (!$key) {
+        return $GLOBALS['config'];
     }
+    return \lim\Config::get($key);
 }
 
 function suc($data = [], $message = 'success', $code = 1)

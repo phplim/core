@@ -6,23 +6,39 @@ use \swoole\Timer;
 
 class Server
 {
-    public static $role = null, $route = null, $cache,$ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null;
+    public static  $cache, $ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null;
 
     public static function run($daemonize = false)
     {
         self::$cache = new \Yac();
 
-        \app\Loader::init();
+        $config = [
 
-        self::$config                     = config('server');
-        self::$config['set']['daemonize'] = $daemonize;
+            'reactor_num'           => 1,
+            'worker_num'            => (int) WORKER_NUM,
+            'task_worker_num'       => (int) TASK_WORKER_NUM,
+            'task_enable_coroutine' => true,
+            'enable_coroutine'      => true,
+            'pid_file'              => '/var/log/anchor.pid',
+            'log_level'             => SWOOLE_LOG_WARNING,
+            'hook_flags'            => SWOOLE_HOOK_ALL,
+            'max_wait_time'         => 3,
+            'reload_async'          => true,
+            'package_max_length'    => 100 * 1024 * 1024,
+            'max_coroutine'         => (int) MAX_COROUTINE,
+            'daemonize'=>$daemonize
+        ];
+        // echo 'run';
+        
+        if (method_exists(\app\Hook::class, 'boot')) {
+                        \app\Hook::boot();
+                    }
 
-        self::$server = new \Swoole\WebSocket\Server(self::$config['ip'], (int) self::$config['http']);
+        self::$server = new \Swoole\WebSocket\Server('0.0.0.0', (int) APP_HW_PORT);
         $app          = new App();
-        self::$server->set(self::$config['set']);
-        self::$server->on('start', fn() => cli_set_process_title(self::$config['name'] . '-master'));
-        // self::$server->on('managerstart', fn() => self::loadTasker());
-        self::$server->on('managerstart', ['\lim\Server','managerstart']);
+        self::$server->set($config);
+        self::$server->on('start', fn() => cli_set_process_title(APP_NAME . '-master'));
+        self::$server->on('managerstart', ['\lim\Server', 'managerstart']);
         self::$server->on('WorkerStart', ['\lim\Server', 'WorkerStart']);
         self::$server->on('WorkerStop', fn() => Timer::clearAll());
         self::$server->on('BeforeReload', fn() => self::loadTasker());
@@ -55,18 +71,18 @@ class Server
             if ($server->taskworker) {
                 $id = $workerId - $server->setting['worker_num'];
                 if ($id == 0) {
-                    cli_set_process_title(self::$config['name'] . '-boot');
-                    if (class_exists('\app\loader')) {
-                        $loader = new \app\loader;
-                        if (APP_ENV!='dev' && method_exists($loader, 'run')) {
-                            $loader->run();
-                        }
+
+                    
+                    
+                    if (method_exists(\app\Hook::class, 'task')) {
+                        \app\Hook::task();
                     }
+                    cli_set_process_title(APP_NAME . '-boot');
                 } else {
-                    cli_set_process_title(self::$config['name'] . '-tasker');
+                    cli_set_process_title(APP_NAME . '-tasker');
                 }
             } else {
-                cli_set_process_title(self::$config['name'] . '-worker');
+                cli_set_process_title(APP_NAME . '-worker');
             }
         } catch (\Swoole\ExitException $e) {
             wlog($e->getStatus());
@@ -76,8 +92,8 @@ class Server
 
     private static function loadTasker()
     {
-       
-        if (isset(self::$ini['dev'])) {
+
+        if (APP_ENV=='dev') {
             return;
         }
 
