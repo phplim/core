@@ -50,9 +50,9 @@ class Console
             if (empty($argv)) {
 
                 echo "Less is More!" . PHP_EOL;
-                echo PHP_EOL . '复制下面的命令并执行以便快速运行' . PHP_EOL;
-                $s = 'alias ' . config('server')['name'] . '=\'/www/server/php/80/bin/php ' . __FILE__ . '\'';
-                echo $s . PHP_EOL . PHP_EOL;
+                // echo PHP_EOL . '复制下面的命令并执行以便快速运行' . PHP_EOL;
+                // $s = 'alias ' . config('server')['name'] . '=\'/www/server/php/80/bin/php ' . __FILE__ . '\'';
+                // echo $s . PHP_EOL . PHP_EOL;
 
                 if (!is_dir(ROOT . 'logs')) {
                     mkdir(ROOT . 'logs', 0777);
@@ -63,6 +63,11 @@ class Console
                     mkdir(ROOT . 'public', 0777);
                     copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
                     wlog('mkdir public copy index.php');
+                }
+
+                if (!is_file(ROOT.'lim')) {
+                    copy(ROOT . 'vendor/phplim/core/src/source/lim', ROOT . 'lim');
+                    wlog('mkdir public copy lim');
                 }
 
             } else {
