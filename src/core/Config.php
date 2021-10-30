@@ -13,7 +13,7 @@ class Config
         define('APP_ENV', is_file(ROOT . '.dev') ? 'dev' : 'pro');
 
         $this->loadFile();
-
+        $this->loadRule();
         if (config('db.mysql')) {
             if (PHP_SAPI == 'cli') {
                 run(fn() => $this->loadDb());
@@ -70,7 +70,7 @@ class Config
         //加载API路由
         $api = Db::table('lim_api')->select(['status' => 1, 'top|>' => 0, 'ORDER' => ['top' => 'ASC', 'mid' => 'ASC']]);
         foreach ($api as $k => $v) {
-            $route[$v['url']] = [$v['url'], $v['class'], $v['method'], $v['top'] . '.' . $v['mid'], $v['speed']];
+            $route[$v['url']] = [$v['url'], $v['class'], $v['method'], $v['rule'], $v['top'] . '.' . $v['mid'], $v['speed']];
         }
 
         //加载角色
@@ -86,7 +86,7 @@ class Config
     {
         $config = [];
         $dir    = APP . 'config';
-        if ($handle = opendir($dir)) {
+        if (is_dir($dir) && $handle = opendir($dir)) {
             while (($file = readdir($handle)) !== false) {
                 if (($file == ".") || ($file == "..")) {
                     continue;
@@ -102,6 +102,98 @@ class Config
             closedir($handle);
         }
         $GLOBALS['config'] = $config;
+    }
+
+    public function loadRule()
+    {
+        $config = [];
+        $dir    = APP . 'rule';
+        if (is_dir($dir) && $handle = opendir($dir)) {
+            while (($file = readdir($handle)) !== false) {
+                if (($file == ".") || ($file == "..")) {
+                    continue;
+                }
+                $path = $dir . '/' . $file;
+
+                if (is_dir($path)) {
+                    continue;
+                }
+                $name = strstr($file, '.', true);
+
+                
+                $GLOBALS['config']['rules'][$name] = $this->pareRule($name, include $path);
+            }
+            closedir($handle);
+        }
+        // print_r($GLOBALS['config']['rules']);
+        // // $GLOBALS['config'] = $config;
+    }
+
+    private function pareRule($name, $rules)
+    {
+
+        foreach ($rules['methods'] as $k => $v) {
+            $rule = $v['rule'] ?? []; //提取专有规则
+
+            //必选规则
+            if (isset($v['must'])) {
+                $must = explode(',',$v['must']);
+            } else {
+                $must = [];
+            }
+            
+            if (isset($v['vars'])) {
+                $vars = $v['vars']=='*'? array_keys($rules['rules']) :explode(',',$v['vars']);
+            } else {
+                $vars = [];
+            }
+            
+            $vars = array_unique(array_merge($vars, $must, array_keys($rule))); //合法变量
+           
+            foreach ($vars as $var) {
+
+                //提取专用规则
+                if (isset($rule[$var])) {
+                    $ruler[$k][$var] = $rule[$var];
+                }
+             
+                //提取公共规则
+                if (isset($rules['rules'][$var])) {
+                    $ruler[$k][$var] = $rules['rules'][$var];
+                }
+
+                //组合必选规则
+                if (in_array($var, $must)) {
+                    $ruler[$k][$var] = str_replace('@', '@must|', $ruler[$k][$var] );
+                }
+            }
+        }
+
+        return $ruler;
+      
+        // //过滤非法变量
+        // foreach ($this->data as $k => $v) {
+        //     if (!in_array($k, $vars)) {
+        //         unset($this->data[$k]);
+        //     }
+        // }
+
+        //规则组合
+        // foreach ($vars as $var) {
+
+        //     //提取公共规则
+        //     if (isset($rules['rules'][$var])) {
+        //         $rule[$var] = $rules['rules'][$var];
+        //     }
+
+        //     //组合选规则
+        //     if (in_array($var, $must)) {
+        //         $rule[$var] = str_replace('@', '@must|', $rule[$var]);
+        //     }
+        // }
+
+        // suc([$rule, $this->data, $this]);
+        // rule($rule, $this->data)->break();
     }
 
 }

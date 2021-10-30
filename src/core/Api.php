@@ -18,46 +18,20 @@ class Api
 
     public function check()
     {
-        $arr = explode('\\',$this->req->class);
-        $method = array_pop($arr);
-        $path = ROOT.implode('/',array_merge($arr,['rule',$method])).'.php';
-        if (is_file($path)) {
-            $rules = include $path;
+        list($f, $m) = explode('.', $this->req->rule);
 
-            $rule = $rules['methods'][$this->req->method]['rule'] ?? []; //提取专有规则
-
-            $must = $rules['methods'][$this->req->method]['must'] ?? []; //必选规则
-
-            $vars = $rules['methods'][$this->req->method]['vars'] ?? []; //提取合法字段
-
-            $vars = $vars == '*' ? array_keys($rules['rules']) : $vars; //如果字段为*则提取所有规则字段
-
-            $vars = array_unique(array_merge($vars, $must, array_keys($rule))); //合法变量
-
-            //过滤非法变量
+        if ($rule = $GLOBALS['config']['rules'][strtolower($f)][$m] ?? null) {
+            $vars = array_keys($rule);
+            //过滤非法参数
             foreach ($this->data as $k => $v) {
                 if (!in_array($k, $vars)) {
                     unset($this->data[$k]);
                 }
             }
-
-            //规则组合
-            foreach ($vars as $var) {
-
-                //提取公共规则
-                if (isset($rules['rules'][$var])) {
-                    $rule[$var] = $rules['rules'][$var];
-                }
-
-                //组合选规则
-                if (in_array($var, $must)) {
-                    $rule[$var] = str_replace('@', '@must|', $rule[$var]);
-                }
-
-            }
-
+            // suc($rule,$this->data);
             rule($rule, $this->data)->break();
         }
+        
         return $this;
     }
 

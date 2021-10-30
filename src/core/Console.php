@@ -5,6 +5,7 @@ namespace lim;
 
 use function Swoole\Coroutine\run;
 use \lim\Server;
+
 class Console
 {
 
@@ -45,36 +46,37 @@ class Console
     public function run($o, $argv)
     {
 
-
         if (empty($o)) {
             if (empty($argv)) {
 
                 echo "Less is More!" . PHP_EOL;
-                // echo PHP_EOL . '复制下面的命令并执行以便快速运行' . PHP_EOL;
-                // $s = 'alias ' . config('server')['name'] . '=\'/www/server/php/80/bin/php ' . __FILE__ . '\'';
-                // echo $s . PHP_EOL . PHP_EOL;
 
-                if (!is_dir(ROOT . 'logs')) {
+                if (!is_dir(ROOT . 'app')) {
+                    mkdir(ROOT . 'app', 0777);
+                    mkdir(ROOT . 'app/api', 0777);
+                    mkdir(ROOT . 'app/rule', 0777);
+                    mkdir(ROOT . 'app/task', 0777);
+                    mkdir(ROOT . 'app/config', 0777);
                     mkdir(ROOT . 'logs', 0777);
-                    wlog('mkdir logs');
-                }
-
-                if (!is_dir(ROOT . 'public')) {
                     mkdir(ROOT . 'public', 0777);
-                    copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
-                    wlog('mkdir public copy index.php');
-                }
 
-                if (!is_file(ROOT.'lim')) {
+                    copy(ROOT . 'vendor/phplim/core/src/source/Api.php', ROOT . 'app/api/Api.php');
+                    copy(ROOT . 'vendor/phplim/core/src/source/Demo.php', ROOT . 'app/api/Demo.php');
+                    copy(ROOT . 'vendor/phplim/core/src/source/db.php', ROOT . 'app/config/db.php');
+                    copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/rule/demo.php');
+                    copy(ROOT . 'vendor/phplim/core/src/source/function.php', ROOT . 'app/function.php');
+                    copy(ROOT . 'vendor/phplim/core/src/source/Hook.php', ROOT . 'app/Hook.php');
+                    copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
+                    copy(ROOT . 'vendor/phplim/core/src/source/install.sql', ROOT . 'install.sql');
                     copy(ROOT . 'vendor/phplim/core/src/source/lim', ROOT . 'lim');
-                    wlog('mkdir public copy lim');
+                    file_put_contents(ROOT.'.dev',time());
                 }
 
             } else {
                 $act = array_shift($argv);
                 switch ($act) {
                     case 'build':
-                            $sync = 'cp -r '.dirname(__DIR__).' /code/php/core/';
+                        $sync = 'cp -r ' . dirname(__DIR__) . ' /code/php/core/';
                         shell_exec($sync);
                         wlog($sync);
                         break;
