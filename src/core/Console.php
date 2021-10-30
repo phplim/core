@@ -57,7 +57,6 @@ class Console
                     mkdir(ROOT . 'app/rule', 0777);
                     mkdir(ROOT . 'app/task', 0777);
                     mkdir(ROOT . 'app/config', 0777);
-                    
 
                     copy(ROOT . 'vendor/phplim/core/src/source/Api.php', ROOT . 'app/api/Api.php');
                     copy(ROOT . 'vendor/phplim/core/src/source/Demo.php', ROOT . 'app/api/Demo.php');
@@ -65,8 +64,8 @@ class Console
                     copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/rule/demo.php');
                     copy(ROOT . 'vendor/phplim/core/src/source/function.php', ROOT . 'app/function.php');
                     copy(ROOT . 'vendor/phplim/core/src/source/Hook.php', ROOT . 'app/Hook.php');
-                    
-                    file_put_contents(ROOT.'.dev',time());
+
+                    file_put_contents(ROOT . '.dev', time());
                 }
 
                 if (!is_dir(ROOT . 'logs')) {
@@ -85,7 +84,15 @@ class Console
                         shell_exec($sync);
                         wlog($sync);
                         break;
-
+                    case 'clear':
+                        shell_exec('rm -rf ' . ROOT . 'app');
+                        shell_exec('rm -rf ' . ROOT . 'logs');
+                        shell_exec('rm -rf ' . ROOT . 'public');
+                        shell_exec('rm -rf ' . ROOT . 'install.sql');
+                        shell_exec('rm -rf ' . ROOT . 'lim');
+                        shell_exec('rm -rf ' . ROOT . '.dev');
+                        echo 'clear' . PHP_EOL;
+                        break;
                     default:
                         echo 'aaa';
                         break;
