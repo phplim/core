@@ -57,8 +57,7 @@ class Console
                     mkdir(ROOT . 'app/rule', 0777);
                     mkdir(ROOT . 'app/task', 0777);
                     mkdir(ROOT . 'app/config', 0777);
-                    mkdir(ROOT . 'logs', 0777);
-                    mkdir(ROOT . 'public', 0777);
+                    
 
                     copy(ROOT . 'vendor/phplim/core/src/source/Api.php', ROOT . 'app/api/Api.php');
                     copy(ROOT . 'vendor/phplim/core/src/source/Demo.php', ROOT . 'app/api/Demo.php');
@@ -66,10 +65,16 @@ class Console
                     copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/rule/demo.php');
                     copy(ROOT . 'vendor/phplim/core/src/source/function.php', ROOT . 'app/function.php');
                     copy(ROOT . 'vendor/phplim/core/src/source/Hook.php', ROOT . 'app/Hook.php');
+                    
+                    file_put_contents(ROOT.'.dev',time());
+                }
+
+                if (!is_dir(ROOT . 'logs')) {
+                    mkdir(ROOT . 'logs', 0777);
+                    mkdir(ROOT . 'public', 0777);
                     copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
                     copy(ROOT . 'vendor/phplim/core/src/source/install.sql', ROOT . 'install.sql');
                     copy(ROOT . 'vendor/phplim/core/src/source/lim', ROOT . 'lim');
-                    file_put_contents(ROOT.'.dev',time());
                 }
 
             } else {
