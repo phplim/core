@@ -57,6 +57,8 @@ class Server
     public static function managerstart($server)
     {
 
+
+        self::loadTasker();
         // wlog('sss');
     }
 
@@ -71,12 +73,11 @@ class Server
             if ($server->taskworker) {
                 $id = $workerId - $server->setting['worker_num'];
                 if ($id == 0) {
-
-                    
                     
                     if (method_exists(\app\Hook::class, 'task')) {
                         \app\Hook::task();
                     }
+
                     cli_set_process_title(APP_NAME . '-boot');
                 } else {
                     cli_set_process_title(APP_NAME . '-tasker');

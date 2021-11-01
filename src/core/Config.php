@@ -164,6 +164,10 @@ class Config
 
                 //组合必选规则
                 if (in_array($var, $must)) {
+                    if (!isset($ruler[$k][$var])) {
+                        wlog($name.' '.$var);
+                        exit;
+                    }
                     $ruler[$k][$var] = str_replace('@', '@must|', $ruler[$k][$var] );
                 }
             }

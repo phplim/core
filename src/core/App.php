@@ -183,7 +183,7 @@ class App
         }
 
         try {
-            \app\Hook::request($request, $response);
+            // \app\Hook::request($request, $response);
             $get  = $request->get;
             $post = $request->post ?? json_decode($request->getContent(), true);
             $all  = array_merge($get ?? [], $post ?? []);
