@@ -34,7 +34,7 @@ class App
     public function message($server, $frame)
     {
         try {
-            \app\Hook::message($frame);
+            // \app\Hook::message($frame);
             if (substr($frame->data, 0, 1) != '{') {
                 $frame->data = self::crypt($frame->data, true);
             }
@@ -142,7 +142,7 @@ class App
      */
     public static function nginx($value = '')
     {
-        \app\Hook::nginx($frame);
+        // \app\Hook::nginx($frame);
         header('content-type:application/json');
         if (substr($_GET['s'], 0, 1) == '/') {unset($_GET['s']);}
         $get  = $_GET;
@@ -223,7 +223,7 @@ class App
      */
     public static function task($server, $task)
     {
-        \app\Hook::task($task);
+        // \app\Hook::task($task);
         if (isset($task->data['run'])) {
             objRun($task->data['run']);
         }
