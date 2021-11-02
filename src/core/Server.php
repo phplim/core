@@ -19,7 +19,7 @@ class Server
             'task_worker_num'       => (int) TASK_WORKER_NUM,
             'task_enable_coroutine' => true,
             'enable_coroutine'      => true,
-            'pid_file'              => '/var/log/anchor.pid',
+            'pid_file'              => '/var/log/'.APP_NAME.'.pid',
             'log_level'             => SWOOLE_LOG_WARNING,
             'hook_flags'            => SWOOLE_HOOK_ALL,
             'max_wait_time'         => 3,
