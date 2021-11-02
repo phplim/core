@@ -74,6 +74,7 @@ class Console
                     copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
                     copy(ROOT . 'vendor/phplim/core/src/source/install.sql', ROOT . 'install.sql');
                     copy(ROOT . 'vendor/phplim/core/src/source/lim', ROOT . 'lim');
+                    chmod(ROOT . 'vendor/phplim/core/src/source/lim', 0777);
                 }
 
             } else {
@@ -136,7 +137,7 @@ class Console
                     }
                     run(function () use ($o) {
                         \swoole\timer::clearAll();
-                        $pid = file_get_contents('/var/log/' . config('server.name') . '.pid');
+                        $pid = file_get_contents('/var/log/' . APP_NAME . '.pid');
                         $num = $o['S'] == 'stop' ? 15 : 10;
                         $n   = [15 => '停止', 10 => '重启'];
                         $ret = \co::exec('kill -' . $num . ' ' . $pid);
