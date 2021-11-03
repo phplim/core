@@ -251,7 +251,7 @@ class App
         if (isset($route[$uri])) {
             return $route[$uri];
         }
-        
+
         err('非法请求');
 
     }

@@ -70,7 +70,7 @@ class Config
         //加载API路由
         $api = Db::table('lim_api')->select(['status' => 1, 'top|>' => 0, 'ORDER' => ['top' => 'ASC', 'mid' => 'ASC']]);
         foreach ($api as $k => $v) {
-            $route[$v['url']] = [$v['url'], $v['class'], $v['method'], $v['rule'], $v['top'] . '.' . $v['mid'], $v['speed']];
+            $route[strtolower($v['url'])] = [strtolower($v['url']), $v['class'], $v['method'], $v['rule'], $v['top'] . '.' . $v['mid'], $v['speed']];
         }
 
         //加载角色

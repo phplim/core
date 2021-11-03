@@ -261,9 +261,11 @@ class query
         return true;
     }
 
-    public function count()
+    public function count($data=[])
     {
-        $sql = "SELECT COUNT(*) AS count FROM {$this->table}";
+        $this->where($data);
+        $sql = "SELECT COUNT(*) AS count FROM {$this->table} {$this->where}";
+        
         return $this->query($sql)->fetch()['count'];
     }
 
@@ -363,11 +365,13 @@ class query
 
     public function select($data = [])
     {
-        if ($data) {
+        if (is_array($data)) {
             $this->where($data);
+        } else {
+            $this->where = ' WHERE '.$data;
         }
         $sql = "SELECT {$this->cols} FROM {$this->table}" . $this->where . $this->groupBy . $this->orderSql . $this->limit;
-
+       
         $data      = $this->query($sql)->fetchAll();
         $this->pdo = null;
         if ($this->count) {

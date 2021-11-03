@@ -71,6 +71,11 @@ class Rule
 
         if (!$ret) {
             list($msg, $code) = explode('|', LIM_MSG[$act]);
+            switch ($act) {
+                case 'in':
+                    $msg = '只能为{'.$opt.'}中一个';
+                    break;
+            }
             $this->code       = (int) $code;
             $this->msg        = (empty($name) ? $key : $name) . $msg;
         }
