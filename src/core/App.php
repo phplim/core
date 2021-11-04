@@ -18,6 +18,7 @@ class App
     {
         try {
             // App::speed($request->server['remote_addr'] . 'ws');
+            $server->push((int) $request->fd, '{"open":"连接成功"}');
         } catch (\Swoole\ExitException $e) {
             $server->push((int) $request->fd, $e->getStatus());
             $server->disconnect($request->fd);
@@ -50,7 +51,7 @@ class App
             $req->method = $method;
             $req->auth   = $auth;
             $req->all    = $info['data'];
-            $req->header = ['token' => $info['token']];
+            $req->header = ['token' => $info['token']??''];
             $req->path   = $path;
             $req->rule                          = $rule;
             $req->fd   = $frame->fd;
