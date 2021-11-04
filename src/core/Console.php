@@ -53,28 +53,84 @@ class Console
 
                 if (!is_dir(ROOT . 'app')) {
                     mkdir(ROOT . 'app', 0777);
-                    mkdir(ROOT . 'app/api', 0777);
-                    mkdir(ROOT . 'app/rule', 0777);
-                    mkdir(ROOT . 'app/task', 0777);
-                    mkdir(ROOT . 'app/config', 0777);
-
-                    copy(ROOT . 'vendor/phplim/core/src/source/Api.php', ROOT . 'app/api/Api.php');
-                    copy(ROOT . 'vendor/phplim/core/src/source/Demo.php', ROOT . 'app/api/Demo.php');
-                    copy(ROOT . 'vendor/phplim/core/src/source/db.php', ROOT . 'app/config/db.php');
-                    copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/rule/demo.php');
-                    copy(ROOT . 'vendor/phplim/core/src/source/function.php', ROOT . 'app/function.php');
-                    copy(ROOT . 'vendor/phplim/core/src/source/Hook.php', ROOT . 'app/Hook.php');
-
                     file_put_contents(ROOT . '.dev', time());
+                    wlog('mkdir app');
+                }
+
+                if (!is_dir(ROOT . 'app/api')) {
+                    mkdir(ROOT . 'app/api', 0777);
+                    wlog('mkdir app/api');
+                }
+                
+                if (!is_dir(ROOT . 'app/rule')) {
+                    mkdir(ROOT . 'app/rule', 0777);
+                    wlog('mkdir app/rule');
+                }
+                
+                if (!is_dir(ROOT . 'app/task')) {
+                    mkdir(ROOT . 'app/task', 0777);
+                    wlog('mkdir app/task');
+                }
+
+                if (!is_dir(ROOT . 'app/config')) {
+                    mkdir(ROOT . 'app/config', 0777);
+                    wlog('mkdir app/config');
                 }
 
                 if (!is_dir(ROOT . 'logs')) {
                     mkdir(ROOT . 'logs', 0777);
+                    wlog('mkdir logs');
+                }
+
+                if (!is_dir(ROOT . 'public')) {
                     mkdir(ROOT . 'public', 0777);
-                    copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
+                    wlog('mkdir public');
+                }
+
+                if (!is_file(ROOT . 'app/api/Api.php')) {
+                    copy(ROOT . 'vendor/phplim/core/src/source/Api.php', ROOT . 'app/api/Api.php');
+                    wlog('create app/api/Api.php');
+                }
+
+                if (!is_file(ROOT . 'app/api/Demo.php')) {
+                    copy(ROOT . 'vendor/phplim/core/src/source/Demo.php', ROOT . 'app/api/Demo.php');
+                    wlog('create app/api/Demo.php');
+                }
+
+                if (!is_file(ROOT . 'app/config/db.php')) {
+                    copy(ROOT . 'vendor/phplim/core/src/source/db.php', ROOT . 'app/config/db.php');
+                    wlog('create app/config/db.php');
+                }
+
+                if (!is_file(ROOT . 'app/rule/demo.php')) {
+                    copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/rule/demo.php');
+                    wlog('create app/rule/demo.php');
+                }
+
+                if (!is_file(ROOT . 'app/function.php')) {
+                    copy(ROOT . 'vendor/phplim/core/src/source/function.php', ROOT . 'app/function.php');
+                    wlog('create app/function.php');
+                }
+
+                if (!is_file(ROOT . 'app/Hook.php')) {
+                    copy(ROOT . 'vendor/phplim/core/src/source/Hook.php', ROOT . 'app/Hook.php');
+                    wlog('create app/Hook.php');
+                }
+
+                if (!is_file(ROOT . 'install.sql')) {
                     copy(ROOT . 'vendor/phplim/core/src/source/install.sql', ROOT . 'install.sql');
+                    wlog('create install.sql');
+                }
+
+                if (!is_file(ROOT . 'public/index.php')) {
+                    copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
+                    wlog('create public/index.php');
+                }
+
+                if (!is_file(ROOT . 'lim')) {
                     copy(ROOT . 'vendor/phplim/core/src/source/lim', ROOT . 'lim');
                     chmod(ROOT . 'vendor/phplim/core/src/source/lim', 0777);
+                    wlog('create lim');
                 }
 
             } else {
