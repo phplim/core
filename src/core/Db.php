@@ -263,7 +263,11 @@ class query
 
     public function count($data=[])
     {
-        $this->where($data);
+        if (is_array($data)) {
+            $this->where($data);
+        } else {
+            $this->where = ' WHERE '.$data;
+        }
         $sql = "SELECT COUNT(*) AS count FROM {$this->table} {$this->where}";
         
         return $this->query($sql)->fetch()['count'];
