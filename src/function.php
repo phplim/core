@@ -8,6 +8,15 @@ new \lim\Config;
 
 use \lim\Server;
 
+function ti($fn)
+{
+    echo '过程开始'.PHP_EOL;
+    $s = microtime(true);
+    $fn();
+    echo '过程结束'.PHP_EOL;
+    echo '过程耗时:'.(microtime(true) - $s) . '秒'.PHP_EOL;
+}
+
 function config($key = null)
 {
     if (!$key) {

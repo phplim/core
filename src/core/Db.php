@@ -410,7 +410,9 @@ class query
             $s = $this->pdo->exec($sql);
             return $s;
         } catch (\PDOException $e) {
-            wlog($e->getMessage(), 'db');
+            if (!str_contains($e->getMessage(), 'Duplicate')) {
+                wlog($sql . ' ' . $e->getMessage(), 'db');
+            }
             // err($e->getMessage());
             // wlog($sql);
         }
