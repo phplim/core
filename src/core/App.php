@@ -24,6 +24,7 @@ class App
             $server->disconnect($request->fd);
         }
     }
+
     /**
      * WebSocket消息
      * @Author   Wayren
@@ -44,23 +45,24 @@ class App
                 self::push('非法请求');
             }
 
-            list($path, $class, $method,$rule, $auth) = App::parseUri($info['action']);
+            list($path, $class, $method, $rule, $auth) = App::parseUri($info['action']);
 
             $req         = new \StdClass();
             $req->class  = $class;
             $req->method = $method;
             $req->auth   = $auth;
             $req->all    = $info['data'];
-            $req->header = ['token' => $info['token']??''];
+            $req->header = ['token' => $info['token'] ?? ''];
             $req->path   = $path;
-            $req->rule                          = $rule;
-            $req->fd   = $frame->fd;
+            $req->rule   = $rule;
+            $req->fd     = $frame->fd;
 
             (new $class($req))->auth()->check()->before()->$method();
 
         } catch (\Swoole\ExitException $e) {
 
-            $res = json_decode($e->getStatus(), true);
+            $res['action'] = $req->method;
+            $res           = array_merge($res, json_decode($e->getStatus(), true));
 
             if (!isset($res['uid'])) {
                 $uids = $frame->fd;
@@ -150,8 +152,8 @@ class App
         $post = !empty($_POST) ? $_POST : json_decode(file_get_contents("php://input"), true);
         $all  = array_merge($get, $post ?? []);
 
-        list($path, $class, $method, $rule,$auth) = App::parseUri($_SERVER['REQUEST_URI']);
-        $req                                = new \StdClass();
+        list($path, $class, $method, $rule, $auth) = App::parseUri($_SERVER['REQUEST_URI']);
+        $req                                       = new \StdClass();
         foreach ($_SERVER as $k => $v) {
             $k = strtolower($k);
             if (str_contains($k, 'http')) {
@@ -163,7 +165,7 @@ class App
         $req->class        = $class;
         $req->method       = $method;
         $req->auth         = $auth;
-        $req->rule                          = $rule;
+        $req->rule         = $rule;
         $req->path         = $path;
         (new $class($req))->auth()->check()->before()->$method();
     }
@@ -189,17 +191,17 @@ class App
             $post = $request->post ?? json_decode($request->getContent(), true);
             $all  = array_merge($get ?? [], $post ?? []);
 
-            list($path, $class, $method, $rule,$auth) = $a = App::parseUri($request->server['request_uri']);
-            $req                                = new \StdClass();
-            $req->header                        = $request->header;
-            $req->header['ip']                  = $request->header['ip'] ?? $request->server['remote_addr'];
-            $req->all                           = $all;
-            $req->class                         = $class;
-            $req->method                        = $method;
-            $req->auth                          = $auth;
-            $req->rule                          = $rule;
-            $req->path                          = $path;
-            $ret                                = (new $class($req))->auth()->check()->before()->$method();
+            list($path, $class, $method, $rule, $auth) = $a = App::parseUri($request->server['request_uri']);
+            $req                                       = new \StdClass();
+            $req->header                               = $request->header;
+            $req->header['ip']                         = $request->header['ip'] ?? $request->server['remote_addr'];
+            $req->all                                  = $all;
+            $req->class                                = $class;
+            $req->method                               = $method;
+            $req->auth                                 = $auth;
+            $req->rule                                 = $rule;
+            $req->path                                 = $path;
+            $ret                                       = (new $class($req))->auth()->check()->before()->$method();
 
             $response->end($ret);
 
@@ -241,9 +243,9 @@ class App
     {
         $uri = explode('?', strtolower($uri))[0];
 
-        if (str_starts_with($uri, '/configer') && APP_ENV=='dev') {
-   
-            $res = [$uri, '\\configer\\Configer', explode('/', $uri)[2] ?? 'index', 0,0];
+        if (str_starts_with($uri, '/configer') && APP_ENV == 'dev') {
+
+            $res = [$uri, '\\configer\\Configer', explode('/', $uri)[2] ?? 'index', 0, 0];
             return $res;
         }
 
