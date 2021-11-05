@@ -10,7 +10,7 @@ class Db
 
     public static function init($db = 'default')
     {
-        $c                 = config('db.mysql')[$db];
+        $c                      = config('db.mysql')[$db];
         Server::$MysqlPool[$db] = new PDOPool((new PDOConfig)
                 ->withHost($c['host'])
                 ->withPort((int) $c['port'])
@@ -21,7 +21,7 @@ class Db
                 ->withOptions([
                     \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, //查询模式
                     // \PDO::ATTR_PERSISTENT => true, //长连接
-                    \PDO::ATTR_ERRMODE=>\PDO::ERRMODE_EXCEPTION //启用异常模式
+                    \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION, //启用异常模式
                 ])
         );
         // wlog($db.' init');
@@ -86,7 +86,7 @@ class query
         $this->use($db = 'default');
     }
 
-    public function use ($db = 'default') {
+    function use ($db = 'default') {
 
         if (PHP_SAPI != 'cli') {
 
@@ -95,7 +95,7 @@ class query
             } else {
                 $c         = config('db.mysql')[$db];
                 $dsn       = "mysql:host={$c['host']};dbname={$c['database']};port={$c['port']};charset={$c['charset']}";
-                $opt       = [\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC];
+                $opt       = [\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION];
                 $this->pdo = new \PDO($dsn, $c['username'], $c['password'], $opt);
                 return $this;
             }
@@ -261,15 +261,15 @@ class query
         return true;
     }
 
-    public function count($data=[])
+    public function count($data = [])
     {
         if (is_array($data)) {
             $this->where($data);
         } else {
-            $this->where = ' WHERE '.$data;
+            $this->where = ' WHERE ' . $data;
         }
         $sql = "SELECT COUNT(*) AS count FROM {$this->table} {$this->where}";
-        
+
         return $this->query($sql)->fetch()['count'];
     }
 
@@ -360,7 +360,7 @@ class query
 
         $sql = "SELECT {$this->cols} FROM {$this->table}" . $this->where . $this->order . ' LIMIT 1';
 
-        $ret       = $this->query($sql)->fetch();
+        $ret = $this->query($sql)->fetch();
         if ($ret && substr_count($this->cols, ',') == 0 && $this->cols != '*') {
             return end($ret);
         }
@@ -372,10 +372,10 @@ class query
         if (is_array($data)) {
             $this->where($data);
         } else {
-            $this->where = ' WHERE '.$data;
+            $this->where = ' WHERE ' . $data;
         }
         $sql = "SELECT {$this->cols} FROM {$this->table}" . $this->where . $this->groupBy . $this->orderSql . $this->limit;
-       
+
         $data      = $this->query($sql)->fetchAll();
         $this->pdo = null;
         if ($this->count) {
@@ -400,7 +400,6 @@ class query
             return null;
             // exit(json_encode(['code'=>(int) $e->getCode(),'msg'=> $e->getMessage()]));
         }
-
     }
 
     public function exec($sql)
@@ -430,12 +429,12 @@ class query
 
     public function __destruct()
     {
-        if (PHP_SAPI != 'cli'){
-            $this->pdo=null;
+        if (PHP_SAPI != 'cli') {
+            $this->pdo = null;
         } else {
             Server::$MysqlPool[$this->db]->put($this->pdo);
             // wlog('put');
         }
-        
+
     }
 }
