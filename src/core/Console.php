@@ -139,7 +139,7 @@ class Console
                     case 'build':
                         $sync = 'cp -r ' . dirname(__DIR__) . ' /code/php/core/ && cd /code/php/core/ && git add . && git commit -m \''.time().'\' && git push';
                         shell_exec($sync);
-                        wlog($sync);
+                        wlog('composer sync');
                         break;
                     case 'clear':
                         shell_exec('rm -rf ' . ROOT . 'app');
