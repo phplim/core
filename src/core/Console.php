@@ -51,6 +51,11 @@ class Console
 
                 echo "Less is More!" . PHP_EOL;
 
+                if (!is_dir(ROOT . 'logs')) {
+                    mkdir(ROOT . 'logs', 0777);
+                    wlog('mkdir logs');
+                }
+                
                 if (!is_dir(ROOT . 'app')) {
                     mkdir(ROOT . 'app', 0777);
                     file_put_contents(ROOT . '.dev', time());
@@ -75,11 +80,6 @@ class Console
                 if (!is_dir(ROOT . 'app/config')) {
                     mkdir(ROOT . 'app/config', 0777);
                     wlog('mkdir app/config');
-                }
-
-                if (!is_dir(ROOT . 'logs')) {
-                    mkdir(ROOT . 'logs', 0777);
-                    wlog('mkdir logs');
                 }
 
                 if (!is_dir(ROOT . 'public')) {
