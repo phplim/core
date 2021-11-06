@@ -375,7 +375,6 @@ class query
             $this->where = ' WHERE ' . $data;
         }
         $sql = "SELECT {$this->cols} FROM {$this->table}" . $this->where . $this->groupBy . $this->orderSql . $this->limit;
-
         $data      = $this->query($sql)->fetchAll();
         $this->pdo = null;
         if ($this->count) {
