@@ -52,7 +52,7 @@ class App
             $req->fd                                   = $frame->fd;
 
             if (!is_array($info['data'])) {
-                $info['data'] = self::crypt($info['data'], true);
+                $info['data'] = self::crypt($info['data'], true)??[];
             }
             $req->all    = $info['data'];
             $req->header = ['token' => $info['token'] ?? ''];
@@ -206,8 +206,8 @@ class App
             } else {
                 $json = [];
             }
-
-            $req->all = array_merge($request->get ?? [], $request->post ?? [], $json);
+  
+            $req->all = array_merge($request->get ?? [], $request->post ?? [], $json??[]);
 
             $ret = (new $class($req))->auth()->check()->before()->$method();
             $response->end($ret);
@@ -310,7 +310,9 @@ class App
 
             if (substr($ret, 0, 1) == '{') {
                 $ret = json_decode($ret, true);
+
             }
+
             return $ret;
         }
 
