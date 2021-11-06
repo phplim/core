@@ -27,7 +27,7 @@ function config($key = null)
 
 function suc($data = [], $message = 'success', $code = 1)
 {
-    if ( defined('DATA_CRYPT') && DATA_CRYPT==1) {
+    if (DATA_CRYPT==1) {
         $data = \lim\App::crypt($data);
     }
     exit(json_encode(['code' => $code, 'message' => $message, 'data' => $data], 256));

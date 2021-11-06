@@ -26,7 +26,6 @@ class Config
     public static function all()
     {
         return $GLOBALS['config'];
-        // print_r(get_defined_constants());
     }
 
     public static function get($key = '')
@@ -35,7 +34,6 @@ class Config
         self::$key = $GLOBALS['config'];
         self::configParse($arr);
         return self::$key;
-        // print_r(self::$key);
     }
 
     public static function configParse($arr)
@@ -65,6 +63,10 @@ class Config
             if ($v['type'] == 1 && !defined($v['key'])) {
                 define($v['key'], $v['value']);
             }
+        }
+
+        if (!defined('DATA_CRYPT')) {
+            define('DATA_CRYPT', 0);
         }
 
         //加载API路由
@@ -174,30 +176,6 @@ class Config
         }
 
         return $ruler;
-      
-        // //过滤非法变量
-        // foreach ($this->data as $k => $v) {
-        //     if (!in_array($k, $vars)) {
-        //         unset($this->data[$k]);
-        //     }
-        // }
-
-        //规则组合
-        // foreach ($vars as $var) {
-
-        //     //提取公共规则
-        //     if (isset($rules['rules'][$var])) {
-        //         $rule[$var] = $rules['rules'][$var];
-        //     }
-
-        //     //组合选规则
-        //     if (in_array($var, $must)) {
-        //         $rule[$var] = str_replace('@', '@must|', $rule[$var]);
-        //     }
-        // }
-
-        // suc([$rule, $this->data, $this]);
-        // rule($rule, $this->data)->break();
     }
 
 }
