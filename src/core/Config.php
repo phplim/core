@@ -14,6 +14,7 @@ class Config
 
         $this->loadFile();
         $this->loadRule();
+ 
         if (config('db.mysql')) {
             if (PHP_SAPI == 'cli') {
                 run(fn() => $this->loadDb());
@@ -21,6 +22,13 @@ class Config
                 $this->loadDb();
             }
         }
+        (new \Yac)->set(APP_NAME,$GLOBALS['config']);
+    }
+
+    public static function add($key,$value='')
+    {
+        $GLOBALS['config'][$key]=$value;
+        (new \Yac)->set(APP_NAME,$GLOBALS['config']);
     }
 
     public static function all()

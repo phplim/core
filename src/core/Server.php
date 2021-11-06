@@ -2,11 +2,12 @@
 declare (strict_types = 1);
 namespace lim;
 
+use function Swoole\Coroutine\run;
 use \swoole\Timer;
 
 class Server
 {
-    public static  $cache, $ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null;
+    public static $cache, $ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null;
 
     public static function run($daemonize = false)
     {
@@ -19,23 +20,23 @@ class Server
             'task_worker_num'       => (int) TASK_WORKER_NUM,
             'task_enable_coroutine' => true,
             'enable_coroutine'      => true,
-            'pid_file'              => '/var/log/'.APP_NAME.'.pid',
+            'pid_file'              => '/var/log/' . APP_NAME . '.pid',
             'log_level'             => SWOOLE_LOG_WARNING,
             'hook_flags'            => SWOOLE_HOOK_ALL,
-            'max_wait_time'         => 3,
+            'max_wait_time'         => 1,
             'reload_async'          => true,
             'package_max_length'    => 100 * 1024 * 1024,
             'max_coroutine'         => (int) MAX_COROUTINE,
-            'daemonize'=>$daemonize
+            'daemonize'             => $daemonize,
         ];
-        // echo 'run';
-        
-        if (method_exists(\app\Hook::class, 'boot')) {
-                        \app\Hook::boot();
-                    }
 
-        self::$server = new \Swoole\WebSocket\Server('0.0.0.0', (int) APP_HW_PORT);
-        $app          = new App();
+        if (method_exists(\app\Hook::class, 'boot')) {
+            \app\Hook::boot();
+        }
+
+        self::$server         = new \Swoole\WebSocket\Server('0.0.0.0', (int) APP_HW_PORT);
+        self::$server->config = config();
+        $app                  = new App();
         self::$server->set($config);
         self::$server->on('start', fn() => cli_set_process_title(APP_NAME . '-master'));
         self::$server->on('managerstart', ['\lim\Server', 'managerstart']);
@@ -52,19 +53,24 @@ class Server
         // $udp = self::$server->listen($config['ip'], (int) $config['udp'], SWOOLE_SOCK_UDP);
         // $udp->on('packet', ['\lim\App', 'udper']);
         self::$server->start();
+
     }
 
     public static function managerstart($server)
     {
-
-
         self::loadTasker();
+
         // wlog('sss');
     }
 
     public static function WorkerStart($server, int $workerId)
     {
+
         try {
+            
+            Timer::tick(5 * 1000, function () {
+                $GLOBALS['config'] = (new \Yac)->get(APP_NAME);
+            });
             //清理缓存
             if (function_exists('opcache_reset')) {
                 opcache_reset();
@@ -73,7 +79,7 @@ class Server
             if ($server->taskworker) {
                 $id = $workerId - $server->setting['worker_num'];
                 if ($id == 0) {
-                    
+
                     if (method_exists(\app\Hook::class, 'task')) {
                         \app\Hook::task();
                     }
@@ -94,7 +100,7 @@ class Server
     private static function loadTasker()
     {
 
-        if (APP_ENV=='dev') {
+        if (APP_ENV == 'dev') {
             return;
         }
 
