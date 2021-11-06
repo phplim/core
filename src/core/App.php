@@ -6,6 +6,7 @@ class App
 {
     public static $cache = null, $config = [];
 
+    private $req = null;
     /**
      * WebSocket握手
      * @Author   Wayren
@@ -36,33 +37,33 @@ class App
     public function message($server, $frame)
     {
         try {
-            // \app\Hook::message($frame);
-            if (substr($frame->data, 0, 1) != '{') {
-                $frame->data = self::crypt($frame->data, true);
-            }
-            // wlog($frame->data);
+
             if (!$info = json_decode((string) $frame->data, true) ?? null) {
                 self::push('非法请求');
             }
 
             list($path, $class, $method, $rule, $auth) = App::parseUri($info['action']);
+            $req                                       = new \StdClass();
+            $req->class                                = $class;
+            $req->method                               = $method;
+            $req->auth                                 = $auth;
+            $req->path                                 = $path;
+            $req->rule                                 = $rule;
+            $req->fd                                   = $frame->fd;
 
-            $req         = new \StdClass();
-            $req->class  = $class;
-            $req->method = $method;
-            $req->auth   = $auth;
+            if (!is_array($info['data'])) {
+                $info['data'] = self::crypt($info['data'], true);
+            }
             $req->all    = $info['data'];
             $req->header = ['token' => $info['token'] ?? ''];
-            $req->path   = $path;
-            $req->rule   = $rule;
-            $req->fd     = $frame->fd;
 
             (new $class($req))->auth()->check()->before()->$method();
 
         } catch (\Swoole\ExitException $e) {
 
             $res['action'] = $req->method;
-            $res           = array_merge($res, json_decode($e->getStatus(), true));
+
+            $res = array_merge($res, json_decode($e->getStatus(), true));
 
             if (!isset($res['uid'])) {
                 $uids = $frame->fd;
@@ -186,23 +187,29 @@ class App
         }
 
         try {
-            // \app\Hook::request($request, $response);
-            $get  = $request->get;
-            $post = $request->post ?? json_decode($request->getContent(), true);
-            $all  = array_merge($get ?? [], $post ?? []);
 
-            list($path, $class, $method, $rule, $auth) = $a = App::parseUri($request->server['request_uri']);
+            list($path, $class, $method, $rule, $auth) = App::parseUri($request->server['request_uri']);
             $req                                       = new \StdClass();
             $req->header                               = $request->header;
-            $req->header['ip']                         = $request->header['ip'] ?? $request->server['remote_addr'];
-            $req->all                                  = $all;
             $req->class                                = $class;
             $req->method                               = $method;
             $req->auth                                 = $auth;
             $req->rule                                 = $rule;
             $req->path                                 = $path;
-            $ret                                       = (new $class($req))->auth()->check()->before()->$method();
 
+            if ($json = $request->getContent()) {
+                if (substr($json, 0, 1) == '{') {
+                    $json = json_decode($json, true);
+                } else {
+                    $json = self::crypt($json, true);
+                }
+            } else {
+                $json = [];
+            }
+
+            $req->all = array_merge($request->get ?? [], $request->post ?? [], $json);
+
+            $ret = (new $class($req))->auth()->check()->before()->$method();
             $response->end($ret);
 
         } catch (\Swoole\ExitException $e) {
@@ -297,7 +304,14 @@ class App
     public static function crypt($data = '', $de = false)
     {
         if ($de) {
-            return openssl_decrypt(base64_decode($data), TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV);
+            if (!$ret = openssl_decrypt(base64_decode($data), TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV)) {
+                err('密文错误');
+            }
+
+            if (substr($ret, 0, 1) == '{') {
+                $ret = json_decode($ret, true);
+            }
+            return $ret;
         }
 
         if (is_array($data)) {
