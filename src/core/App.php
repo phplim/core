@@ -288,16 +288,16 @@ class App
 
             $tk = explode('|', $auth);
 
-            if (time() - array_shift($tk) > TOKEN_EXP) {
-                err('token过期', 301);
-            }
+            // if (time() - array_shift($tk) > TOKEN_EXP) {
+            //     err('token过期', 301);
+            // }
 
             //api接口访问 非用户访问
             if (empty($tk)) {
                 return null;
             }
 
-            return array_combine(['uid', 'role', 'auth'], $tk);
+            return array_combine(['crt','uid', 'role', 'auth'], $tk);
         }
 
         return base64_encode(openssl_encrypt(time() . '|' . $v, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));

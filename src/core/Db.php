@@ -79,7 +79,7 @@ class Db
 
 class query
 {
-    public $pdo, $db = 'default', $limit = '', $cols = '*', $where = '', $order = '', $count = false, $err = null, $orderSql = '', $json = [], $groupBy = '';
+    public $log = false, $pdo, $db = 'default', $limit = '', $cols = '*', $where = '', $order = '', $count = false, $err = null, $orderSql = '', $json = [], $groupBy = '';
 
     public function __construct()
     {
@@ -294,6 +294,12 @@ class query
         $ret = $this->query($sql)->fetch();
         return $ret[$col] ?? null;
     }
+
+    public function log()
+    {
+        $this->log = true;
+        return $this;
+    }
     public function insert($data)
     {
         $key = implode('`,`', array_keys($data));
@@ -333,13 +339,13 @@ class query
         //如果没有key就不更新
         if (empty($key)) {
             // wlog('不更新');
-            return null;
+            return true;
         }
 
         $keyl  = implode(',', $key);
         $where = implode(' AND ', $where);
         $sql   = "UPDATE {$this->table} SET {$keyl} WHERE {$where}";
-        // wlog($sql);
+ 
         $this->execute($sql, $data);
         $this->pdo = null;
         return $this->status ?? null;
@@ -389,6 +395,11 @@ class query
     public function execute($sql, $data)
     {
         array_walk($data, function (&$e) {$e = is_array($e) ? json_encode($e, 256) : $e;});
+
+        if (APP_ENV == 'dev') {
+            wlog($sql);
+            print_r($data);
+        }
         try {
             $st           = $this->pdo->prepare($sql);
             $this->status = $st->execute(array_values($data));
@@ -397,6 +408,7 @@ class query
             if (!str_contains($e->getMessage(), 'Duplicate')) {
                 wlog($sql . ' ' . $e->getMessage(), 'db');
             }
+
             return null;
             // exit(json_encode(['code'=>(int) $e->getCode(),'msg'=> $e->getMessage()]));
         }
@@ -404,7 +416,9 @@ class query
 
     public function exec($sql)
     {
-
+        if (APP_ENV == 'dev') {
+            wlog($sql);
+        }
         try {
             $s = $this->pdo->exec($sql);
             return $s;
@@ -419,6 +433,9 @@ class query
 
     public function query($sql)
     {
+        if (APP_ENV == 'dev') {
+            wlog($sql);
+        }
         try {
             return $this->pdo->query($sql);
         } catch (\PDOException $e) {
@@ -433,8 +450,6 @@ class query
             $this->pdo = null;
         } else {
             Server::$MysqlPool[$this->db]->put($this->pdo);
-            // wlog('put');
         }
-
     }
 }

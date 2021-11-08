@@ -52,27 +52,27 @@ class Api
 
     public function insert()
     {
-        suc(Db::table($this->table)->insert($this->data));
+        suc(Db::use($this->database??'default')->table($this->table)->insert($this->data));
     }
 
     public function delete()
     {
-        suc(Db::table($this->table)->delete($this->data));
+        suc(Db::use($this->database??'default')->table($this->table)->delete($this->data));
     }
 
     public function update()
     {
-        suc(Db::table($this->table)->update($this->data));
+        suc(Db::use($this->database??'default')->table($this->table)->update($this->data));
     }
 
     public function get()
     {
-        suc(Db::table($this->table)->get($this->data));
+        suc(Db::use($this->database??'default')->table($this->table)->get($this->data));
     }
 
     public function select()
     {
-        suc(Db::table($this->table)->select($this->data));
+        suc(Db::use($this->database??'default')->table($this->table)->select($this->data));
     }
 
 }
