@@ -198,6 +198,7 @@ class App
             $req->path                                 = $path;
 
             if (!$req->all = array_merge($request->get ?? [], $request->post ?? [])) {
+                
                 if ($json = $request->getContent()) {
                     if (substr($json, 0, 1) == '{') {
                         $json = json_decode($json, true);
