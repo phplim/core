@@ -5,7 +5,6 @@ define('APP', ROOT . 'app/');
 
 spl_autoload_register('loader');
 new \lim\Config;
-
 use \lim\Server;
 
 function ti($fn)
