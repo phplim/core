@@ -12,16 +12,16 @@ const LIM_MSG = [
     'time'   => ' 不是有效的时间|305',
     'date'   => '不是有效的日期|306',
     'has'    => '不存在|307',
-    'eq'=>'错误|308',
-    'in'=>'非法|309',
-    'object'=>'必须为对象|310',
-    'array'=>'必须为数组|311',
-    'len'=>'长度错误|312'
+    'eq'     => '错误|308',
+    'in'     => '非法|309',
+    'object' => '必须为对象|310',
+    'array'  => '必须为数组|311',
+    'len'    => '长度错误|312',
 ];
 
 class Rule
 {
-    public $code = 200, $msg = '请求成功';
+    public $code = 200, $msg = '请求成功', $data;
 
     public function __construct($rule, $data)
     {
@@ -30,7 +30,7 @@ class Rule
         }
 
         $rule = is_string($rule) ? [$rule] : $rule;
-        $data = is_string($data) ? [$data] : $data;
+        $data = $this->data = is_string($data) ? [$data] : $data;
 
         foreach ($rule as $key => $value) {
             $ruler = $this->parseRule($value);
@@ -51,41 +51,41 @@ class Rule
 
     public function check($key, $name, $act, $opt, $value)
     {
-       
+
         $ret = match($act) {
-            'string' => is_string($value),
-            'bool'   => filter_var($value, FILTER_VALIDATE_BOOLEAN)!=null,
-            'int', 'integer' =>  is_numeric($value),
+            'string'         => is_string($value),
+            'bool'   => filter_var($value, FILTER_VALIDATE_BOOLEAN) != null,
+            'int', 'integer' => is_numeric($value),
             'has', 'must'    => isset($value),
             'unique' => db::unique($key, $value, $opt),
             'time'   => (int) $value >= 0 && (int) $value <= 2147483647,
             'date'   => strtotime(date('Y-m-d H:i:s', (int) strtotime($value))) === strtotime($value),
-            'eq'=>$value==$opt,
-            'in'=>in_array($value, explode(',',$opt)),
-            'object'=>is_object($value),
-            'array'=>is_array($value),
-            'len'=>$this->len($value,$opt),
-            'float'=>filter_var($value, FILTER_VALIDATE_FLOAT),
-            default =>true
+            'eq'     => $value == $opt,
+            'in'     => in_array($value, explode(',', $opt)),
+            'object' => is_object($value),
+            'array'  => is_array($value),
+            'len'    => $this->len($value, $opt),
+            'float'  => filter_var($value, FILTER_VALIDATE_FLOAT),
+        default  => true
         };
 
         if (!$ret) {
             list($msg, $code) = explode('|', LIM_MSG[$act]);
             switch ($act) {
                 case 'in':
-                    $msg = '只能为{'.$opt.'}中一个';
+                    $msg = '只能为{' . $opt . '}中一个';
                     break;
             }
-            $this->code       = (int) $code;
-            $this->msg        = (empty($name) ? $key : $name) . $msg;
+            $this->code = (int) $code;
+            $this->msg  = (empty($name) ? $key : $name) . $msg;
         }
     }
 
-    public function len($value='',$opt='')
+    public function len($value = '', $opt = '')
     {
-        list($min,$max)=explode(',', $opt);
-        $len=strlen((string)$value);
-        return ($len>=$min && $len<=$max);
+        list($min, $max) = explode(',', $opt);
+        $len             = strlen((string) $value);
+        return ($len >= $min && $len <= $max);
     }
 
     public function parseRule($rule)
@@ -107,14 +107,14 @@ class Rule
         }
     }
 
-    function code()
+    public function code()
     {
         return $this->code;
     }
 
-    public static function m($value='',$code=300)
+    public static function m($value = '', $code = 300)
     {
-        exit(json_encode(['code'=>(int)$code,'msg'=>$value], 256));
+        exit(json_encode(['code' => (int) $code, 'msg' => $value], 256));
     }
 
 }

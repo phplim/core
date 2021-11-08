@@ -211,7 +211,7 @@ class query
                     'like' => " `$key[0]` LIKE '%$v%'",
                     '>'        => " `$key[0]` > '$v'",
                     '>='       => " `$key[0]` >= '$v'",
-                    '<'        => " `$key[0]` < '$v'",
+                    '<'        => " $key[0] < '$v'",
                     '<='       => " `$key[0]` <= '$v'",
                     '<>'       => " `$key[0]` <> '$v'",
                     'json_has' => " JSON_CONTAINS_PATH( {$key[0]},'all','$.\"{$v}\"' )",
@@ -375,6 +375,7 @@ class query
             $this->where = ' WHERE ' . $data;
         }
         $sql = "SELECT {$this->cols} FROM {$this->table}" . $this->where . $this->groupBy . $this->orderSql . $this->limit;
+        // wlog($sql);
         $data      = $this->query($sql)->fetchAll();
         $this->pdo = null;
         if ($this->count) {
