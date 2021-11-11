@@ -63,6 +63,7 @@ function loader($class)
     if (is_file($file)) {
         require_once $file;
     } else {
+        echo $file;
         exit(json_encode(['code' => 300, 'msg' => $file . " 不存在"], 256));
     }
 }

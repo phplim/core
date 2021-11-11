@@ -198,19 +198,21 @@ class App
             $req->path                                 = $path;
 
             if (!$req->all = array_merge($request->get ?? [], $request->post ?? [])) {
-                
-                if ($json = $request->getContent()) {
-                    if (substr($json, 0, 1) == '{') {
-                        $json = json_decode($json, true);
-                    } else {
-                        $json = self::crypt($json, true);
+                $json = [];
+                if (!$request->files) {
+                    if ($tmp = $request->getContent()) {
+                        if (substr($tmp, 0, 1) == '{') {
+                            $json = json_decode($tmp, true);
+                        } else {
+                            $json = self::crypt($tmp, true);
+                        }
                     }
-                } else {
-                    $json = [];
                 }
-                $req->all = array_merge($req->all,$json);
-            }
 
+                $req->all = array_merge($req->all, $json);
+            }
+            $req->files = $request->files;
+            // $request=null;
             $ret = (new $class($req))->auth()->check()->before()->$method();
             $response->end($ret);
 
@@ -297,7 +299,7 @@ class App
                 return null;
             }
 
-            return array_combine(['crt','uid', 'role', 'auth'], $tk);
+            return array_combine(['crt', 'uid', 'role', 'auth'], $tk);
         }
 
         return base64_encode(openssl_encrypt(time() . '|' . $v, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));

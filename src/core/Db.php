@@ -125,6 +125,11 @@ class query
 
     public function cols($value = '', $parse = true)
     {
+        if ($value=='*'||empty($value)) {
+            $this->cols = "*";
+            return $this ;
+        }
+
         if ($parse) {
             $this->cols = '`' . str_replace(',', '`,`', $value) . '`';
         } else {
