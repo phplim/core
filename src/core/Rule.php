@@ -103,6 +103,7 @@ class Rule
 
     function break () {
         if ($this->code !== 200) {
+            unset($this->data);
             exit(json_encode($this, 256));
         }
     }
