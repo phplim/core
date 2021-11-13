@@ -12,7 +12,7 @@ class Server
     public static function run($daemonize = false)
     {
         self::$cache = new \Yac();
-
+        \Swoole\Coroutine::set(['enable_deadlock_check'=>null]);
         $config = [
 
             'reactor_num'           => 1,

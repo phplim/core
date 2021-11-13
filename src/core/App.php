@@ -37,6 +37,11 @@ class App
     public function message($server, $frame)
     {
         try {
+            // wlog('debug:'.strlen($frame->data));
+            if ($frame->data == 'ping') {
+                // wlog('ping of fd '.$frame->fd);
+                return;
+            }
 
             if (!$info = json_decode((string) $frame->data, true) ?? null) {
                 self::push('非法请求');

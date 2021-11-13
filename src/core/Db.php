@@ -10,21 +10,26 @@ class Db
 
     public static function init($db = 'default')
     {
-        $c                      = config('db.mysql')[$db];
-        Server::$MysqlPool[$db] = new PDOPool((new PDOConfig)
-                ->withHost($c['host'])
-                ->withPort((int) $c['port'])
-                ->withDbName($c['database'])
-                ->withCharset($c['charset'])
-                ->withUsername($c['username'])
-                ->withPassword($c['password'])
-                ->withOptions([
-                    \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, //查询模式
-                    // \PDO::ATTR_PERSISTENT => true, //长连接
-                    \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION, //启用异常模式
-                ])
-        );
-        // wlog($db.' init');
+        try {
+            $c                      = config('db.mysql')[$db];
+            Server::$MysqlPool[$db] = new PDOPool((new PDOConfig)
+                    ->withHost($c['host'])
+                    ->withPort((int) $c['port'])
+                    ->withDbName($c['database'])
+                    ->withCharset($c['charset'])
+                    ->withUsername($c['username'])
+                    ->withPassword($c['password'])
+                    ->withOptions([
+                        \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, //查询模式
+                        // \PDO::ATTR_PERSISTENT => true, //长连接
+                        \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION, //启用异常模式
+                    ])
+            );
+            // wlog($db . ' init');
+        } catch (\Throwable $e) {
+            print_r($e);
+            // exit;
+        }
     }
 
     public static function json_set(&$data, $keys)
@@ -83,30 +88,26 @@ class query
 
     public function __construct()
     {
-        $this->use($db = 'default');
+        $this->use();
     }
 
     function use ($db = 'default') {
 
         if (PHP_SAPI != 'cli') {
-
-            if (isset($this->pdo)) {
-                return $this;
-            } else {
+            if (!isset($this->pdo)) {
                 $c         = config('db.mysql')[$db];
                 $dsn       = "mysql:host={$c['host']};dbname={$c['database']};port={$c['port']};charset={$c['charset']}";
                 $opt       = [\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION];
                 $this->pdo = new \PDO($dsn, $c['username'], $c['password'], $opt);
-                return $this;
             }
         } else {
+            // wlog('use ' . $db);
             $this->db = $db;
-            if (!isset(Server::$MysqlPool[$this->db])) {
-                Db::init($db);
-            }
-            $this->pdo = Server::$MysqlPool[$this->db]->get();
-            return $this;
+            Db::init($db);
+            
+            $this->pdo = Server::$MysqlPool[$this->db]->get(1);
         }
+        return $this;
     }
 
     public function table($table = '')
@@ -125,9 +126,9 @@ class query
 
     public function cols($value = '', $parse = true)
     {
-        if ($value=='*'||empty($value)) {
+        if ($value == '*' || empty($value)) {
             $this->cols = "*";
-            return $this ;
+            return $this;
         }
 
         if ($parse) {
@@ -350,7 +351,7 @@ class query
         $keyl  = implode(',', $key);
         $where = implode(' AND ', $where);
         $sql   = "UPDATE {$this->table} SET {$keyl} WHERE {$where}";
- 
+
         $this->execute($sql, $data);
         $this->pdo = null;
         return $this->status ?? null;
@@ -406,14 +407,17 @@ class query
             print_r($data);
         }
         try {
+            $this->pdo->beginTransaction();
             $st           = $this->pdo->prepare($sql);
             $this->status = $st->execute(array_values($data));
             $this->id     = $this->pdo->lastInsertId();
+            $this->pdo->commit();
         } catch (\PDOException $e) {
+            $this->pdo->rollBack();
             if (!str_contains($e->getMessage(), 'Duplicate')) {
                 wlog($sql . ' ' . $e->getMessage(), 'db');
             }
-
+            print_r($e->getMessage());
             return null;
             // exit(json_encode(['code'=>(int) $e->getCode(),'msg'=> $e->getMessage()]));
         }
@@ -431,8 +435,7 @@ class query
             if (!str_contains($e->getMessage(), 'Duplicate')) {
                 wlog($sql . ' ' . $e->getMessage(), 'db');
             }
-            // err($e->getMessage());
-            // wlog($sql);
+            return null;
         }
     }
 
@@ -454,7 +457,10 @@ class query
         if (PHP_SAPI != 'cli') {
             $this->pdo = null;
         } else {
+
             Server::$MysqlPool[$this->db]->put($this->pdo);
+
+            wlog($this->db.' put');
         }
     }
 }
