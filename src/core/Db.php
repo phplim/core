@@ -102,9 +102,9 @@ class query
             }
         } else {
             $this->db = $db;
-            if (!isset(Server::$MysqlPool[$this->db])) {
+            // if (!isset(Server::$MysqlPool[$this->db])) {
                 Db::init($db);
-            }
+            // }
             $this->pdo = Server::$MysqlPool[$this->db]->get();
             return $this;
         }
