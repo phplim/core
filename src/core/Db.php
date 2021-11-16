@@ -101,11 +101,12 @@ class query
                 $this->pdo = new \PDO($dsn, $c['username'], $c['password'], $opt);
             }
         } else {
-            // wlog('use ' . $db);
             $this->db = $db;
-            Db::init($db);
-            
-            $this->pdo = Server::$MysqlPool[$this->db]->get(1);
+            if (!isset(Server::$MysqlPool[$this->db])) {
+                Db::init($db);
+            }
+            $this->pdo = Server::$MysqlPool[$this->db]->get();
+            return $this;
         }
         return $this;
     }
