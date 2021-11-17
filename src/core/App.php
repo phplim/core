@@ -213,8 +213,8 @@ class App
                         }
                     }
                 }
-
-                $req->all = array_merge($req->all, $json);
+                // suc($json);
+                $req->all = array_merge($req->all, $json??[]);
             }
             $req->files = $request->files;
             // $request=null;

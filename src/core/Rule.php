@@ -15,7 +15,7 @@ const LIM_MSG = [
     'eq'     => '错误|308',
     'in'     => '非法|309',
     'object' => '必须为对象|310',
-    'array'  => '必须为数组|311',
+    'array'  => '必须为数组或对象|311',
     'len'    => '长度错误|312',
 ];
 
@@ -62,7 +62,7 @@ class Rule
             'date'   => strtotime(date('Y-m-d H:i:s', (int) strtotime($value))) === strtotime($value),
             'eq'     => $value == $opt,
             'in'     => in_array($value, explode(',', $opt)),
-            'object' => is_object($value),
+            'object' => substr(json_encode($value), 0,1)=='{',
             'array'  => is_array($value),
             'len'    => $this->len($value, $opt),
             'float'  => filter_var($value, FILTER_VALIDATE_FLOAT),

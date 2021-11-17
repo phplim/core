@@ -402,7 +402,7 @@ class query
 
     public function execute($sql, $data)
     {
-        array_walk($data, function (&$e) {$e = is_array($e) ? json_encode($e, 256) : $e;});
+        array_walk($data, function (&$e) {$e = is_array($e)||is_object($e) ? json_encode($e, 256) : $e;});
 
         if (APP_ENV == 'dev') {
             wlog($sql);
@@ -418,6 +418,9 @@ class query
         } catch (\PDOException $e) {
             $this->pdo->rollBack();
             if (!str_contains($e->getMessage(), 'Duplicate')) {
+                wlog($sql . ' ' . $e->getMessage(), 'db');
+            }
+            if (APP_ENV=='dev') {
                 wlog($sql . ' ' . $e->getMessage(), 'db');
             }
             return null;

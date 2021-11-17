@@ -135,8 +135,6 @@ class Config
             }
             closedir($handle);
         }
-        // print_r($GLOBALS['config']['rules']);
-        // // $GLOBALS['config'] = $config;
     }
 
     private function pareRule($name, $rules)
