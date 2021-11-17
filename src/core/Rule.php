@@ -58,7 +58,7 @@ class Rule
             'int', 'integer' => is_numeric($value),
             'has', 'must'    => isset($value),
             'unique' => db::unique($key, $value, $opt),
-            'time'   => (int) $value >= 0 && (int) $value <= 2147483647,
+            'time'   => strtotime($value),
             'date'   => strtotime(date('Y-m-d H:i:s', (int) strtotime($value))) === strtotime($value),
             'eq'     => $value == $opt,
             'in'     => in_array($value, explode(',', $opt)),

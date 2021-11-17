@@ -410,10 +410,13 @@ class query
         }
 
         try {
+            $this->pdo->beginTransaction();
             $st           = $this->pdo->prepare($sql);
             $this->status = $st->execute(array_values($data));
             $this->id     = $this->pdo->lastInsertId();
+            $this->pdo->commit();
         } catch (\PDOException $e) {
+            $this->pdo->rollBack();
             if (!str_contains($e->getMessage(), 'Duplicate')) {
                 wlog($sql . ' ' . $e->getMessage(), 'db');
             }
@@ -427,9 +430,12 @@ class query
             wlog($sql);
         }
         try {
+            $this->pdo->beginTransaction();
             $s = $this->pdo->exec($sql);
+             $this->pdo->commit();
             return $s;
         } catch (\PDOException $e) {
+            $this->pdo->rollBack();
             if (!str_contains($e->getMessage(), 'Duplicate')) {
                 wlog($sql . ' ' . $e->getMessage(), 'db');
             }
