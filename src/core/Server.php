@@ -7,7 +7,7 @@ use \swoole\Timer;
 
 class Server
 {
-    public static $cache, $ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null;
+    public static $cache, $ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null,$MysqlPoolNum=0;
 
     public static function run($daemonize = false)
     {

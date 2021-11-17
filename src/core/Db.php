@@ -23,9 +23,9 @@ class Db
                         \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, //查询模式
                         // \PDO::ATTR_PERSISTENT => true, //长连接
                         \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION, //启用异常模式
-                    ])
+                    ]),1
             );
-            // wlog($db . ' init');
+            wlog($db . ' init');
         } catch (\Throwable $e) {
             print_r($e);
             // exit;
@@ -102,10 +102,12 @@ class query
             }
         } else {
             $this->db = $db;
-            // if (!isset(Server::$MysqlPool[$this->db])) {
+            // if (!isset(Server::$MysqlPool[$this->db]) || Server::$MysqlPoolNum<=0 ) {
+                // Server::$MysqlPoolNum=60;
                 Db::init($db);
             // }
             $this->pdo = Server::$MysqlPool[$this->db]->get();
+            // Server::$MysqlPoolNum--;
             return $this;
         }
         return $this;
@@ -461,7 +463,7 @@ class query
 
             Server::$MysqlPool[$this->db]->put($this->pdo);
 
-            wlog($this->db.' put');
+            wlog($this->db.' put '.Server::$MysqlPoolNum);
         }
     }
 }
