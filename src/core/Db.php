@@ -7,12 +7,12 @@ use \Swoole\Database\PDOPool;
 
 class Db
 {
-
+    public static $pool=[] ,$poolNum=[];
     public static function init($db = 'default')
     {
         try {
             $c                      = config('db.mysql')[$db];
-            Server::$MysqlPool[$db] = new PDOPool((new PDOConfig)
+            self::$pool[$db] = new PDOPool((new PDOConfig)
                     ->withHost($c['host'])
                     ->withPort((int) $c['port'])
                     ->withDbName($c['database'])
@@ -23,7 +23,7 @@ class Db
                         \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, //查询模式
                         // \PDO::ATTR_PERSISTENT => true, //长连接
                         \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION, //启用异常模式
-                    ]),1
+                    ])
             );
             wlog($db . ' init');
         } catch (\Throwable $e) {
@@ -102,13 +102,12 @@ class query
             }
         } else {
             $this->db = $db;
-            // if (!isset(Server::$MysqlPool[$this->db]) || Server::$MysqlPoolNum<=0 ) {
-                // Server::$MysqlPoolNum=60;
+            if (!isset(Db::$pool[$this->db])||!isset(Db::$poolNum[$this->db])||Db::$poolNum[$this->db]<=1) {
+                Db::$poolNum[$this->db]=60;
                 Db::init($db);
-            // }
-            $this->pdo = Server::$MysqlPool[$this->db]->get();
-            // Server::$MysqlPoolNum--;
-            return $this;
+            }
+            $this->pdo = Db::$pool[$this->db]->get();
+            Db::$poolNum[$this->db]--;
         }
         return $this;
     }
@@ -409,20 +408,16 @@ class query
             wlog($sql);
             print_r($data);
         }
+
         try {
-            $this->pdo->beginTransaction();
             $st           = $this->pdo->prepare($sql);
             $this->status = $st->execute(array_values($data));
             $this->id     = $this->pdo->lastInsertId();
-            $this->pdo->commit();
         } catch (\PDOException $e) {
-            $this->pdo->rollBack();
             if (!str_contains($e->getMessage(), 'Duplicate')) {
                 wlog($sql . ' ' . $e->getMessage(), 'db');
             }
-            print_r($e->getMessage());
             return null;
-            // exit(json_encode(['code'=>(int) $e->getCode(),'msg'=> $e->getMessage()]));
         }
     }
 
@@ -461,9 +456,8 @@ class query
             $this->pdo = null;
         } else {
 
-            Server::$MysqlPool[$this->db]->put($this->pdo);
-
-            wlog($this->db.' put '.Server::$MysqlPoolNum);
+            Db::$pool[$this->db]->put($this->pdo);
+            wlog($this->db.' put '.Db::$poolNum[$this->db]);
         }
     }
 }
