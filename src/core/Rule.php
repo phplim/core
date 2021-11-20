@@ -62,11 +62,11 @@ class Rule
             'date'   => strtotime(date('Y-m-d H:i:s', (int) strtotime($value))) === strtotime($value),
             'eq'     => $value == $opt,
             'in'     => in_array($value, explode(',', $opt)),
-            'object' => substr(json_encode($value), 0,1)=='{',
+            'object' => substr(json_encode($value), 0, 1) == '{',
             'array'  => is_array($value),
             'len'    => $this->len($value, $opt),
             'float'  => filter_var($value, FILTER_VALIDATE_FLOAT),
-        default  => true
+            default  => true
         };
 
         if (!$ret) {
@@ -80,6 +80,7 @@ class Rule
             $this->msg  = (empty($name) ? $key : $name) . $msg;
         }
     }
+
 
     public function len($value = '', $opt = '')
     {
