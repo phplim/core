@@ -16,6 +16,12 @@ function ti($fn)
     echo '过程耗时:'.(microtime(true) - $s) . '秒'.PHP_EOL;
 }
 
+
+function data($data)
+{
+    return new \lim\DataV($data);
+}
+
 function config($key = null)
 {
     if (!$key) {

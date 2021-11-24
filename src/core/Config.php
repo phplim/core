@@ -159,15 +159,15 @@ class Config
             $vars = array_unique(array_merge($vars, $must, array_keys($rule))); //合法变量
            
             foreach ($vars as $var) {
-
-                //提取专用规则
-                if (isset($rule[$var])) {
-                    $ruler[$k][$var] = $rule[$var];
-                }
              
                 //提取公共规则
                 if (isset($rules['rules'][$var])) {
                     $ruler[$k][$var] = $rules['rules'][$var];
+                }
+
+                //提取专用规则
+                if (isset($rule[$var])) {
+                    $ruler[$k][$var] = $rule[$var];
                 }
 
                 //组合必选规则

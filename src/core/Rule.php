@@ -61,7 +61,7 @@ class Rule
             'time'   => strtotime($value),
             'date'   => strtotime(date('Y-m-d H:i:s', (int) strtotime($value))) === strtotime($value),
             'eq'     => $value == $opt,
-            'in'     => in_array($value, explode(',', $opt)),
+            'in'     => in_array($value, explode(',', $opt))===true,
             'object' => substr(json_encode($value), 0, 1) == '{',
             'array'  => is_array($value),
             'len'    => $this->len($value, $opt),
@@ -73,11 +73,12 @@ class Rule
             list($msg, $code) = explode('|', LIM_MSG[$act]);
             switch ($act) {
                 case 'in':
+                    wlog($value);
                     $msg = '只能为{' . $opt . '}中一个';
                     break;
             }
             $this->code = (int) $code;
-            $this->msg  = (empty($name) ? $key : $name) . $msg;
+            $this->msg  = (empty($name) ? $key : $name).$key . $msg;
         }
     }
 
