@@ -91,6 +91,13 @@ class query
         $this->use();
     }
 
+    public function cache($key='',$exp=0)
+    {
+        $this->cacheKey = $key;
+        $this->cacheExp = $exp;
+        return $this;
+    }
+
     function use ($db = 'default') {
 
         if (PHP_SAPI != 'cli') {
@@ -368,6 +375,13 @@ class query
 
     public function get($data)
     {
+
+        if (isset($this->cacheKey)) {
+            if ($data = Server::$cache->get($this->cacheKey)) {
+                return $data;
+            }
+        }
+
         if ($data) {
             $this->where($data);
         }
@@ -378,23 +392,38 @@ class query
         if ($ret && substr_count($this->cols, ',') == 0 && $this->cols != '*') {
             return end($ret);
         }
+        if (isset($this->cacheKey)) {
+            Server::$cache->set($this->cacheKey,$ret,$this->cacheExp);
+        }
         return $ret;
     }
 
     public function select($data = [])
     {
+
+        if (isset($this->cacheKey)) {
+            if ($res = Server::$cache->get($this->cacheKey)) {
+                return $res;
+            }
+        }
+
+
         if (is_array($data)) {
             $this->where($data);
         } else {
             $this->where = ' WHERE ' . $data;
         }
         $sql = "SELECT {$this->cols} FROM {$this->table}" . $this->where . $this->groupBy . $this->orderSql . $this->limit;
-        // wlog($sql);
+ 
         $data      = $this->query($sql)->fetchAll();
         $this->pdo = null;
         if ($this->count) {
             $total = $this->query("SELECT COUNT(*) AS t FROM {$this->table}" . $this->where)->fetch()['t'];
             return [(int) $total, $data];
+        }
+
+        if (isset($this->cacheKey)) {
+            Server::$cache->set($this->cacheKey,$data,$this->cacheExp);
         }
 
         return $data;
