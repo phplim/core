@@ -91,12 +91,6 @@ class query
         $this->use();
     }
 
-    public function cache($key='',$exp=0)
-    {
-        $this->cacheKey = $key;
-        $this->cacheExp = $exp;
-        return $this;
-    }
 
     function use ($db = 'default') {
 
@@ -401,13 +395,6 @@ class query
     public function select($data = [])
     {
 
-        if (isset($this->cacheKey)) {
-            if ($res = Server::$cache->get($this->cacheKey)) {
-                return $res;
-            }
-        }
-
-
         if (is_array($data)) {
             $this->where($data);
         } else {
@@ -420,10 +407,6 @@ class query
         if ($this->count) {
             $total = $this->query("SELECT COUNT(*) AS t FROM {$this->table}" . $this->where)->fetch()['t'];
             return [(int) $total, $data];
-        }
-
-        if (isset($this->cacheKey)) {
-            Server::$cache->set($this->cacheKey,$data,$this->cacheExp);
         }
 
         return $data;

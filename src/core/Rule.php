@@ -58,7 +58,7 @@ class Rule
             'int', 'integer' => is_numeric($value),
             'has', 'must'    => isset($value),
             'unique' => db::unique($key, $value, $opt),
-            'time'   => strtotime($value),
+            'time'   => strtotime((string)$value),
             'date'   => strtotime(date('Y-m-d H:i:s', (int) strtotime($value))) === strtotime($value),
             'eq'     => $value == $opt,
             'in'     => in_array($value, explode(',', $opt))===true,
@@ -78,7 +78,7 @@ class Rule
                     break;
             }
             $this->code = (int) $code;
-            $this->msg  = (empty($name) ? $key : $name).$key . $msg;
+            $this->msg  = (empty($name) ? $key : $name).' '.$key . $msg;
         }
     }
 
