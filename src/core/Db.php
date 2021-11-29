@@ -392,7 +392,7 @@ class query
         return $ret;
     }
 
-    public function select($data = [])
+    public function select($data = [],$call=null)
     {
 
         if (is_array($data)) {
@@ -407,6 +407,12 @@ class query
         if ($this->count) {
             $total = $this->query("SELECT COUNT(*) AS t FROM {$this->table}" . $this->where)->fetch()['t'];
             return [(int) $total, $data];
+        }
+
+        if ($call!==null) {
+            foreach ($data as $k => $v) {
+                $call($v);
+            }
         }
 
         return $data;

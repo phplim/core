@@ -8,11 +8,10 @@ namespace lim;
  */
 class Tc 
 {
-    public static $begin = null , $nodeList = [];
+    public static $key = 0 , $nodeList = [];
 
-
-    public static function in($key=null,$value=[])
+    public static function node()
     {
-        return " {$key} IN ('".implode("','",$value)."') ";
+        static::$nodeList[static::$key]['start'] = microtime(true);
     }
 }

@@ -17,6 +17,7 @@ const LIM_MSG = [
     'object' => '必须为对象|310',
     'array'  => '必须为数组或对象|311',
     'len'    => '长度错误|312',
+    'preg'   => '规则错误|313',
 ];
 
 class Rule
@@ -58,15 +59,16 @@ class Rule
             'int', 'integer' => is_numeric($value),
             'has', 'must'    => isset($value),
             'unique' => db::unique($key, $value, $opt),
-            'time'   => strtotime((string)$value),
+            'time'   => strtotime((string) $value),
             'date'   => strtotime(date('Y-m-d H:i:s', (int) strtotime($value))) === strtotime($value),
             'eq'     => $value == $opt,
-            'in'     => in_array($value, explode(',', $opt))===true,
+            'in'     => in_array($value, explode(',', $opt)) === true,
             'object' => substr(json_encode($value), 0, 1) == '{',
             'array'  => is_array($value),
             'len'    => $this->len($value, $opt),
             'float'  => filter_var($value, FILTER_VALIDATE_FLOAT),
-            default  => true
+            'preg'   => preg_match($opt, $value),
+        default  => true
         };
 
         if (!$ret) {
@@ -76,12 +78,15 @@ class Rule
                     wlog($value);
                     $msg = '只能为{' . $opt . '}中一个';
                     break;
+                case 'preg':
+                    wlog($value);
+                    $msg = '规则为'.$opt;
+                    break;
             }
             $this->code = (int) $code;
-            $this->msg  = (empty($name) ? $key : $name).' '.$key . $msg;
+            $this->msg  = (empty($name) ? $key : $name) . ' ' . $key . $msg;
         }
     }
-
 
     public function len($value = '', $opt = '')
     {
