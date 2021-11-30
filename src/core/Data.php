@@ -122,6 +122,9 @@ class Data
     public static function kv($cols='*',$where = ['deleted_at|null'=>true],$fn = null )
     {
         $res = Db::use (static::$database)->table(static::$table)->cols($cols,false)->select($where);
+        if (!$res) {
+            return[];
+        }
         $keys = array_keys(end($res));
         $num = count($keys);
         foreach ($res as $k => $v) {

@@ -169,7 +169,7 @@ class query
 
         if (is_array($data)) {
             foreach ($data as $k => $v) {
-                if ($k == 'limit') {
+                if ($k == 'limit' || $k == 'page_size') {
                     $limit = $v;
                     continue;
                 }
@@ -403,7 +403,7 @@ class query
         $sql = "SELECT {$this->cols} FROM {$this->table}" . $this->where . $this->groupBy . $this->orderSql . $this->limit;
  
         $data      = $this->query($sql)->fetchAll();
-        $this->pdo = null;
+      
         if ($this->count) {
             $total = $this->query("SELECT COUNT(*) AS t FROM {$this->table}" . $this->where)->fetch()['t'];
             return [(int) $total, $data];

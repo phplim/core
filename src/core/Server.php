@@ -7,12 +7,16 @@ use \swoole\Timer;
 
 class Server
 {
-    public static $cache, $ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null,$MysqlPoolNum=0;
+    public static $cache, $ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null, $MysqlPoolNum = 0;
 
     public static function run($daemonize = false)
     {
+        if (!is_dir(ROOT . 'public')) {
+            mkdir(ROOT . 'public', true);
+        }
+
         self::$cache = new \Yac();
-        \Swoole\Coroutine::set(['enable_deadlock_check'=>null]);
+        \Swoole\Coroutine::set(['enable_deadlock_check' => null]);
         $config = [
 
             'reactor_num'           => 1,
@@ -28,6 +32,8 @@ class Server
             'package_max_length'    => 100 * 1024 * 1024,
             'max_coroutine'         => (int) MAX_COROUTINE,
             'daemonize'             => $daemonize,
+            'document_root'         => ROOT . 'public', // v4.4.0以下版本, 此处必须为绝对路径
+            'enable_static_handler' => true,
         ];
 
         if (method_exists(\app\Hook::class, 'boot')) {
@@ -67,7 +73,7 @@ class Server
     {
 
         try {
-            
+
             Timer::tick(5 * 1000, function () {
                 $GLOBALS['config'] = (new \Yac)->get(APP_NAME);
             });
