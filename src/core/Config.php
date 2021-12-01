@@ -71,6 +71,10 @@ class Config
             if ($v['type'] == 1 && !defined($v['key'])) {
                 define($v['key'], $v['value']);
             }
+
+            if ($v['type'] == 2 && !isset($GLOBALS['config'][$v['key']])) {
+                $GLOBALS['config'][$v['key']]=$v['value'];
+            }
         }
 
         if (!defined('DATA_CRYPT')) {

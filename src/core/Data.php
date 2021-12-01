@@ -98,6 +98,11 @@ class Data
         return Db::use(static::$database)->table(static::$table)->cols($cols,$pear);
     }
 
+    public static function exec($sql='')
+    {
+        return Db::use(static::$database)->exec($sql);
+    }
+
     public static function find($v='',$k='id')
     {
         return Db::use(static::$database)->table(static::$table)->get([$k=>$v]);
