@@ -23,6 +23,8 @@ class Db
                         \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, //查询模式
                         // \PDO::ATTR_PERSISTENT => true, //长连接
                         \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION, //启用异常模式
+                        \PDO::ATTR_STRINGIFY_FETCHES=>false,
+                        \PDO::ATTR_EMULATE_PREPARES=>false
                     ])
             );
             wlog($db . ' init');

@@ -201,6 +201,7 @@ class App
             $req->auth                                 = $auth;
             $req->rule                                 = $rule;
             $req->path                                 = $path;
+            $req->content = $request->getContent();
 
             if (!$req->all = array_merge($request->get ?? [], $request->post ?? [])) {
                 $json = [];
