@@ -135,6 +135,9 @@ class App
      */
     public static function cache($k, $v = null, $t = 0)
     {
+        if (!Server::$cache) {
+            Server::$cache = new \Yac();
+        }
         if ($v) {
             return Server::$cache->set($k, $v, $t);
         }

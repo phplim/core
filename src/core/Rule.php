@@ -22,7 +22,7 @@ const LIM_MSG = [
 
 class Rule
 {
-    public $code = 200, $msg = '请求成功', $data;
+    public $code = 200, $message = '请求成功', $data;
 
     public function __construct($rule, $data)
     {
@@ -72,19 +72,19 @@ class Rule
         };
 
         if (!$ret) {
-            list($msg, $code) = explode('|', LIM_MSG[$act]);
+            list($message, $code) = explode('|', LIM_MSG[$act]);
             switch ($act) {
                 case 'in':
                     wlog($value);
-                    $msg = '只能为{' . $opt . '}中一个';
+                    $message = '只能为{' . $opt . '}中一个';
                     break;
                 case 'preg':
                     wlog($value);
-                    $msg = '规则为'.$opt;
+                    $message = '规则为'.$opt;
                     break;
             }
             $this->code = (int) $code;
-            $this->msg  = (empty($name) ? $key : $name) . ' ' . $key . $msg;
+            $this->message  = (empty($name) ? $key : $name) . ' ' . $key . $message;
         }
     }
 
@@ -122,7 +122,7 @@ class Rule
 
     public static function m($value = '', $code = 300)
     {
-        exit(json_encode(['code' => (int) $code, 'msg' => $value], 256));
+        exit(json_encode(['code' => (int) $code, 'message' => $value], 256));
     }
 
 }
