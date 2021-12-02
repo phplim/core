@@ -47,12 +47,10 @@ class App
                 self::push('非法请求');
             }
 
-            print_r($frame->data);
-            
             list($path, $class, $method, $rule, $auth) = App::parseUri($info['action']);
-            // if (!$method) {
-            //     self::push('非法请求');
-            // }
+            if (!$method) {
+                self::push('非法请求');
+            }
 
             $req                                       = new \StdClass();
             $req->class                                = $class;
