@@ -49,7 +49,7 @@ class App
 
             list($path, $class, $method, $rule, $auth) = App::parseUri($info['action']);
             if (!$method) {
-                return;
+                self::push('非法请求');
             }
 
             $req                                       = new \StdClass();
