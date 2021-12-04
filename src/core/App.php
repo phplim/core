@@ -18,9 +18,7 @@ class App
     public function open($server, $request)
     {
         try {
-           
             static::$request = $request;
-            // App::speed($request->server['remote_addr'] . 'ws');
             $server->push((int) $request->fd, '{"action":"onOpen"}');
         } catch (\Swoole\ExitException $e) {
             $server->push((int) $request->fd, $e->getStatus());
