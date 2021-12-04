@@ -61,7 +61,7 @@ class App
             $req->rule                                 = $rule;
             $req->fd                                   = $frame->fd;
 
-            print_r($req);
+            
 
             if (!is_array($info['data'])) {
                 $info['data'] = self::crypt($info['data'], true) ?? [];
