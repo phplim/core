@@ -4,7 +4,7 @@ namespace lim;
 
 class App
 {
-    public static $cache = null, $config = [];
+    public static $cache = null, $config = [],$request=null;
 
     private $req = null;
     /**
@@ -18,6 +18,8 @@ class App
     public function open($server, $request)
     {
         try {
+           
+            static::$request = $request;
             // App::speed($request->server['remote_addr'] . 'ws');
             $server->push((int) $request->fd, '{"action":"onOpen"}');
         } catch (\Swoole\ExitException $e) {
@@ -53,12 +55,15 @@ class App
             }
 
             $req                                       = new \StdClass();
+            $req->header                               = static::$request->header;
             $req->class                                = $class;
             $req->method                               = $method;
             $req->auth                                 = $auth;
             $req->path                                 = $path;
             $req->rule                                 = $rule;
             $req->fd                                   = $frame->fd;
+
+            print_r($req);
 
             if (!is_array($info['data'])) {
                 $info['data'] = self::crypt($info['data'], true) ?? [];
