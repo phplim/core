@@ -220,11 +220,11 @@ class query
                 //解析额外参数
                 $where[] = match($key[1]) {
                     'like' => " `$key[0]` LIKE '%$v%'",
-                    '>'        => " `$key[0]` > '$v'",
-                    '>='       => " `$key[0]` >= '$v'",
+                    '>'        => " $key[0] > '$v'",
+                    '>='       => " $key[0] >= '$v'",
                     '<'        => " $key[0] < '$v'",
-                    '<='       => " `$key[0]` <= '$v'",
-                    '<>'       => " `$key[0]` <> '$v'",
+                    '<='       => " $key[0] <= '$v'",
+                    '<>'       => " $key[0] <> '$v'",
                     'json_has' => " JSON_CONTAINS_PATH( {$key[0]},'all','$.\"{$v}\"' )",
                     'json_key' => " {$key[0]}->>'$.\"" . array_keys($v)[0] . "\"' = '" . array_shift($v) . "'",
                     'null'     => " `$key[0]` IS NULL",
