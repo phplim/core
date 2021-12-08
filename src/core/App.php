@@ -204,8 +204,6 @@ class App
         $response->header("Access-Control-Allow-Origin", "*");
         $response->header("Access-Control-Allow-Methods", "*");
         $response->header("Access-Control-Allow-Headers", "*");
-       
-
 
         try {
 
@@ -312,17 +310,23 @@ class App
             }
 
             $tk = explode('|', $auth);
+         
+            //API接口访问 只有一个时间值
+            // if (count($tk)==1) {
+            //     return null;
+            // }
 
             // if (time() - array_shift($tk) > TOKEN_EXP) {
             //     err('token过期', 301);
             // }
 
             //api接口访问 非用户访问
-            if (empty($tk)) {
-                return null;
+            
+            if(count($tk)==4){
+                return array_combine(['crt', 'uid', 'role', 'auth'], $tk);
             }
 
-            return array_combine(['crt', 'uid', 'role', 'auth'], $tk);
+            return null;
         }
 
         return base64_encode(openssl_encrypt(time() . '|' . $v, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
@@ -347,6 +351,6 @@ class App
             $data = json_encode($data);
         }
 
-        return base64_encode(openssl_encrypt($data, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
+        return base64_encode(openssl_encrypt((string)$data, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
     }
 }
