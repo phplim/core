@@ -201,6 +201,8 @@ class App
             return;
         }
 
+        $response->header("Access-Control-Allow-Origin", "*");
+
         try {
 
             list($path, $class, $method, $rule, $auth) = App::parseUri($request->server['request_uri']);
@@ -228,11 +230,12 @@ class App
                 $req->all = array_merge($req->all, $json??[]);
             }
             $req->files = $request->files;
-            // $request=null;
+            
             $ret = (new $class($req))->auth()->check()->before()->$method();
             $response->end($ret);
 
         } catch (\Swoole\ExitException $e) {
+
             $ret = $e->getStatus();
             if (substr((string) $ret, 0, 1) == '{') {
                 $response->header("Content-Type", 'application/json');
