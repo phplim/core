@@ -309,7 +309,8 @@ class App
                 err('token非法', 301);
             }
 
-            $tk = explode('|', $auth);
+            return $auth;
+            // $tk = explode('|', $auth);
          
             //API接口访问 只有一个时间值
             // if (count($tk)==1) {
@@ -322,11 +323,11 @@ class App
 
             //api接口访问 非用户访问
             
-            if(count($tk)==4){
-                return array_combine(['crt', 'uid', 'role', 'auth'], $tk);
-            }
+            // if(count($tk)==4){
+            //     return array_combine(['crt', 'uid', 'role', 'auth'], $tk);
+            // }
 
-            return null;
+            // return null;
         }
 
         return base64_encode(openssl_encrypt(time() . '|' . $v, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
