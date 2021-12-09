@@ -53,11 +53,7 @@ class Server
         self::$server->on('open', [$app, 'open']);
         self::$server->on('message', [$app, 'message']);
         self::$server->on('close', fn() => '');
-
         self::$server->on('request', [$app, 'request']);
-
-        // $udp = self::$server->listen($config['ip'], (int) $config['udp'], SWOOLE_SOCK_UDP);
-        // $udp->on('packet', ['\lim\App', 'udper']);
         self::$server->start();
 
     }

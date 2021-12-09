@@ -127,6 +127,11 @@ class query1
         return $this;
     }
 
+    public function jsonSet()
+    {
+        // code...
+    }
+
     public function where($where)
     {
         $this->where = $where;

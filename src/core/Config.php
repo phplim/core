@@ -10,8 +10,11 @@ class Config
 
     public function __construct()
     {
-        define('APP_ENV', is_file(ROOT . '.dev') ? 'dev' : 'pro');
 
+        if (!defined('APP_ENV')) {
+           define('APP_ENV', is_file(ROOT . '.dev') ? 'dev' : 'pro');
+        }
+        
         $this->loadFile();
         $this->loadRule();
  
@@ -22,6 +25,7 @@ class Config
                 $this->loadDb();
             }
         }
+
         (new \Yac)->set(APP_NAME,$GLOBALS['config']);
     }
 
@@ -40,6 +44,7 @@ class Config
     {
         $arr       = explode('.', $key);
         self::$key = $GLOBALS['config'];
+
         self::configParse($arr);
         return self::$key;
     }
@@ -84,7 +89,14 @@ class Config
         //加载API路由
         $api = Db::table('lim_api')->select(['status' => 1, 'top|>' => 0, 'ORDER' => ['top' => 'ASC', 'mid' => 'ASC']]);
         foreach ($api as $k => $v) {
-            $route[strtolower($v['url'])] = [strtolower($v['url']), $v['class'], $v['method'], $v['rule'], $v['top'] . '.' . $v['mid'], $v['speed']];
+            $route[strtolower($v['url'])] = [
+                strtolower($v['url']), 
+                $v['class'], 
+                $v['method'], 
+                $v['rule'], 
+                $v['top'] . '.' . $v['mid'], 
+                $v['speed']
+            ];
         }
 
         //加载角色
@@ -94,6 +106,23 @@ class Config
         }
         $GLOBALS['config']['route'] = $route;
         $GLOBALS['config']['role']  = $role;
+    }
+
+    public static function refroute()
+    {
+        //加载API路由
+        $api = Db::table('lim_api')->select(['status' => 1, 'top|>' => 0, 'ORDER' => ['top' => 'ASC', 'mid' => 'ASC']]);
+        foreach ($api as $k => $v) {
+            $route[strtolower($v['url'])] = [
+                strtolower($v['url']), 
+                $v['class'], 
+                $v['method'], 
+                $v['rule'], 
+                $v['top'] . '.' . $v['mid'], 
+                $v['speed']
+            ];
+        }
+        $GLOBALS['config']['route'] = $route;
     }
 
     public function loadFile()
