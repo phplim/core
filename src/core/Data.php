@@ -5,7 +5,8 @@ namespace lim;
 
 class Data
 {
-    public static $user = false, $database = APP_ENV, $table = null, $rule = null ,$data=[];
+    const AA = 22;
+    public static $user = false, $database = APP_ENV, $table = null, $rule = null ,$data=[],$config=[];
 
     public static function init($table='')
     {
@@ -14,6 +15,12 @@ class Data
         wlog('data init');
         return self::class;
     }
+
+    // public static function config($key='')
+    // {
+    //     wlog(__CLASS__);
+    //     return Server::$server->DataConfig['AttendanceModifylog'][$key];
+    // }
 
     public static function table($table='')
     {

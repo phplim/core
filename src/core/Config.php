@@ -29,6 +29,35 @@ class Config
         (new \Yac)->set(APP_NAME,$GLOBALS['config']);
     }
 
+    /**
+     * 加载数据模型配置文件
+     * @Author   Wayren
+     * @DateTime 2021-12-10T11:31:46+0800
+     * @return   [type]                   [description]
+     */
+    public static function loadDataConfig()
+    {
+        wlog('加载数据模型配置文件');
+        $config = [];
+        $dir    = APP . 'config/data';
+        if (is_dir($dir) && $handle = opendir($dir)) {
+            while (($file = readdir($handle)) !== false) {
+                if (($file == ".") || ($file == "..")) {
+                    continue;
+                }
+                $path = $dir . '/' . $file;
+
+                if (is_dir($path)) {
+                    continue;
+                }
+                $name          = strstr($file, '.', true);
+                $config[$name] = include $path;
+            }
+            closedir($handle);
+        }
+        return $config;
+    }
+
     public static function add($key,$value='')
     {
         $GLOBALS['config'][$key]=$value;

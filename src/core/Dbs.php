@@ -101,7 +101,7 @@ class Dbs
 
 class query1
 {
-    public $database = 'default', $run = true;
+    public $database = 'default', $run = true,$where=[],$sets=[];
 
     function use ($database = 'default') {
         $this->database = $database;
@@ -127,14 +127,22 @@ class query1
         return $this;
     }
 
-    public function jsonSet()
+    public function jsonSet($col,$key,$value)
     {
-        // code...
+        $this->sets[] = $col.' = JSON_SET(' . $col . ',\'$."' . $key . '"\',\'' . $value . '\') ';
+        return $this; 
     }
 
-    public function where($where)
+    public function where($key='',$symbol=null,$value=null)
     {
         $this->where = $where;
+        return $this;
+    }
+
+
+    public function whereIn($col,$data=[])
+    {
+        $this->where[]= $col.' IN (\''.implode('\',\'',$data).'\')';
         return $this;
     }
 
@@ -162,7 +170,29 @@ class query1
     public function update($data = [])
     {
         $this->action = 'update';
-        $this->sql    = "UPDATE {$this->table} SET face = '1s1' WHERE {$this->where}";
+
+        foreach ($data as $k => $v) {
+            
+            if($v===null){
+                continue;
+            }
+
+            if (is_array($v)) {
+                $v = json_encode($v,256);
+            }
+            
+            if (is_string($v)) {
+                $v = "'".$v."'";
+            }
+            
+            $tmp[]=$k.' = '.$v;
+        }
+
+        $this->sets = array_merge($this->sets,$tmp??[]);
+
+        $sets = implode(' , ', $this->sets);
+
+        $this->sql    = "UPDATE {$this->table} SET {$sets} WHERE ".implode(' AND ',$this->where);
         return $this->todo();
     }
 
@@ -178,7 +208,7 @@ class query1
         if ($this->run) {
             return dbs::run($this);
         } else {
-            // print_r($this);
+            print_r($this);
         }
     }
 

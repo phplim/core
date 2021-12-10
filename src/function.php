@@ -7,6 +7,7 @@ spl_autoload_register('loader');
 new \lim\Config;
 use \lim\Server;
 
+
 function ti($fn)
 {
     echo '过程开始'.PHP_EOL;
