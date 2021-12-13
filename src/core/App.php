@@ -94,18 +94,19 @@ class App
                     $req->fd     = $frame->fd;
                     break;
                 default:
-                    
+                    $req->socketio = false;
                    
                     if (!$info = json_decode((string) $code, true) ?? null) {
-                        self::push('非法请求');
+                        err('非法请求');
+                        return;
                     }
+
                     list($path, $class, $method, $rule, $auth) = App::parseUri($info['action']);
                     
                     $req->header['token'] = $info['token'] ?? '';
                     $req->receive ??= $method;
                     $req->all    = $info['data'];
                     
-                    $req->socketio = false;
                     $req->class  = $class;
                     $req->method = $method;
                     $req->auth   = $auth;
@@ -123,6 +124,7 @@ class App
 
             $data = json_decode($e->getStatus(), true);
           
+         
             if ($req->socketio) {
                 if ((int)$data['code']!=1) {
                     $server->push((int) $frame->fd, '42'.json_encode([$req->receive??'error',$data],256));
@@ -130,7 +132,7 @@ class App
                 }
                 $res = '42' . json_encode([$req->receive, $data], 256);
             } else {
-                $res['action'] = $req->method;
+                $res['action'] = $req->method??null;
                 $res = json_encode(array_merge($res, $data),256);
             }
             
