@@ -58,6 +58,8 @@ class App
                 return;
             }
 
+            wlog($frame->data);
+
             if ($index = strpos($frame->data, '[')) {
                 $code = substr($frame->data, 0, $index);
                 $data = json_decode(substr($frame->data, $index), true);
@@ -121,7 +123,7 @@ class App
                     break;
             }
 
-            wlog([$code,$data]);
+            
             (new $class($req))->auth()->check()->before()->$method();
 
         } catch (\Swoole\ExitException $e) {
