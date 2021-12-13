@@ -124,7 +124,7 @@ class App
             $data = json_decode($e->getStatus(), true);
           
             if ($req->socketio) {
-                if ($data['code']!=1) {
+                if ((int)$data['code']!=1) {
                     $server->push((int) $frame->fd, '42'.json_encode([$req->receive??'error',$data],256));
                     return;
                 }
