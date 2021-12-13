@@ -117,7 +117,7 @@ class App
                     break;
             }
 
-            
+            wlog([$code,$data]);
             (new $class($req))->auth()->check()->before()->$method();
 
         } catch (\Swoole\ExitException $e) {
