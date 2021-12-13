@@ -54,6 +54,10 @@ class App
     {
         try {
 
+            if ($frame->data=='ping') {
+                return;
+            }
+
             if ($index = strpos($frame->data, '[')) {
                 $code = substr($frame->data, 0, $index);
                 $data = json_decode(substr($frame->data, $index), true);
