@@ -4,22 +4,155 @@ namespace lim;
 
 class Model
 {
-    public static $user = false, $database = APP_ENV, $table = null, $rule = null, $data = [];
+    public static $user = false, $database = APP_ENV, $table = null, $rule = null, $data = [], $config = [];
 
-    // public static function __callStatic($name, $arguments)
-    // {
-    //     call_user_func_array(array(__CLASS__, $name), $arguments);
-    // }
+    public function __construct($data = [])
+    {
+        if ($data) {
+            static::$data = $data;
+        }
+    }
 
     public static function __callStatic($method, $args)
     {
-        $class = '\\app\\data\\'.$method;
 
-        print_r([$method,$args,$class]);
         try {
-            return call_user_func_array([new $class(), $method], $args);
+            if (Server::$server) {
+                static::$config = Server::$server->DataConfig[$method] ?? [];
+            } else {
+                static::$config = Config::loadDataConfig()[$method] ?? [];
+            }
+            $class = '\\app\\data\\' . $method;
+            return new $class(array_shift($args));
         } catch (Throwable $e) {
             print_r($e);
         }
+    }
+
+    public static function table($table = '')
+    {
+        static::$table = $table;
+        return self::class;
+    }
+
+    public static function check($method, &$data)
+    {
+
+        if ($rule = $GLOBALS['config']['rules'][strtolower((string) static::$rule)][$method] ?? null) {
+            $vars = array_keys($rule);
+            //过滤非法参数
+            foreach ($data as $k => $v) {
+
+                //排除表达式过滤
+                if (preg_match('/\|/', $k)) {
+                    continue;
+                }
+
+                if (!in_array($k, $vars)) {
+                    unset($data[$k]);
+                }
+            }
+            rule($rule, $data)->break();
+        }
+        return $data;
+    }
+
+    public static function insert($data = [], $msg = '')
+    {
+        static::check('insert', $data);
+        $res = Db::use (static::$database)->table(static::$table)->insert($data);
+        if ($msg) {
+            $res !== null ? suc($res, $msg . '成功') : err($msg . '失败');
+        }
+        return $res;
+    }
+
+    public static function update($data, $where, $msg = '')
+    {
+        static::check('update', $data);
+        $res = Db::use (static::$database)->table(static::$table)->update($data, $where);
+        if ($msg) {
+            $res !== null ? suc([], $msg . '成功') : err($msg . '失败');
+        }
+        return $res;
+    }
+
+    public static function delete($data, $msg = '')
+    {
+        static::check('delete', $data);
+        $res = Db::use (static::$database)->table(static::$table)->delete($data);
+        if ($msg) {
+            $res !== null ? suc([], $msg . '成功') : err($msg . '失败');
+        }
+        return $res;
+    }
+
+    public static function get($data = [], $cols = '*', $msg = '')
+    {
+        static::check('get', $data);
+        $res = Db::use (static::$database)->table(static::$table)->cols($cols)->get($data);
+        if ($msg) {
+            suc($res, $msg . '成功');
+        }
+        return $res;
+    }
+
+    public static function search($data = [], $cols = '*', $msg = '')
+    {
+        static::check('search', $data);
+        $res = Db::use (static::$database)->table(static::$table)->cols($cols)->select($data);
+        if ($msg) {
+            suc($res, $msg . '成功');
+        }
+        return $res;
+    }
+
+    public static function cols($cols = '*', $pear = true)
+    {
+        return Db::use (static::$database)->table(static::$table)->cols($cols, $pear);
+    }
+
+    public static function exec($sql = '')
+    {
+        return Db::use (static::$database)->exec($sql);
+    }
+
+    public static function find($v = '', $k = 'id')
+    {
+        return Db::use (static::$database)->table(static::$table)->get([$k => $v]);
+    }
+
+    public static function all($cols = '*', $delete = null)
+    {
+        $where = $delete ? ['deleted_at|null' => true] : [];
+        $res   = Db::use (static::$database)->table(static::$table)->cols($cols)->select($where);
+        return $res;
+    }
+
+    /**
+     * 将数组转化为键值对
+     * 如果值只有一个就将二维数组转化为一维数组
+     * @Author   Wayren
+     * @DateTime 2021-11-25T11:50:19+0800
+     * @param    string                   $cols [description]
+     * @param    string                   $key  [description]
+     * @return   [type]                         [description]
+     */
+    public static function kv($cols = '*', $where = ['deleted_at|null' => true], $fn = null)
+    {
+        $res = Db::use (static::$database)->table(static::$table)->cols($cols, false)->select($where);
+        if (!$res) {
+            return [];
+        }
+        $keys = array_keys(end($res));
+        $num  = count($keys);
+        foreach ($res as $k => $v) {
+            if ($fn) {
+                $fn($v);
+            }
+
+            $data[$v[$keys[0]]] = $num == 2 ? $v[$keys[1]] : $v;
+        }
+        return $data;
     }
 }

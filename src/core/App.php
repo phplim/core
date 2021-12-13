@@ -2,9 +2,11 @@
 declare (strict_types = 1);
 namespace lim;
 
+use \swoole\Timer;
+
 class App
 {
-    public static $cache = null, $config = [],$request=null;
+    public static $cache = null, $config = [], $request = null;
 
     private $req = null;
     /**
@@ -15,11 +17,25 @@ class App
      * @param    [type]                   $request [description]
      * @return   [type]                            [description]
      */
-    public function open($server, $request)
+    public static function open($server, $request)
     {
         try {
             static::$request = $request;
-            $server->push((int) $request->fd, '{"action":"onOpen"}');
+
+            //socket.io
+            if (isset($request->get['transport'])) {
+                $data = [
+                    'sid'          => time(),
+                    'upgrades'     => [],
+                    'pingInterval' => 25000,
+                    'pingTimeout'  => 20000,
+                ];
+                $server->push((int) $request->fd, '0' . json_encode($data)); //socket is open
+                Timer::tick(25 * 1000, fn() => $server->push((int) $request->fd, 2));
+            } else {
+                $server->push((int) $request->fd, '{"action":"onOpen"}');
+            }
+
         } catch (\Swoole\ExitException $e) {
             $server->push((int) $request->fd, $e->getStatus());
             $server->disconnect($request->fd);
@@ -34,49 +50,90 @@ class App
      * @param    [type]                   $frame  [description]
      * @return   [type]                           [description]
      */
-    public function message($server, $frame)
+    public static function message($server, $frame)
     {
         try {
-            // wlog('debug:'.strlen($frame->data));
-            if ($frame->data == 'ping') {
-                // wlog('ping of fd '.$frame->fd);
-                return;
+
+            if ($index = strpos($frame->data, '[')) {
+                $code = substr($frame->data, 0, $index);
+                $data = json_decode(substr($frame->data, $index), true);
+            } else {
+                $code = $frame->data;
+                $data = '';
             }
 
-            if (!$info = json_decode((string) $frame->data, true) ?? null) {
-                self::push('非法请求');
-            }
+            $req         = new \StdClass();
+            $req->header = static::$request->header;
+            $req->socketio = true;
+            switch ($code) {
+                case 0:break;
+                case 2:break;
+                case 3:wlog('ping');return;
+                case 40:$server->push((int) $frame->fd, '40{"sid":' . time() . '}');
+                    return;
+                case 42:
+                    $info = array_shift($data);
 
-            list($path, $class, $method, $rule, $auth) = App::parseUri($info['action']);
-            if (!$method) {
-                self::push('非法请求');
-            }
+                    
+                    if (!$url = $info['action']??null) {
+                        err('action必填');
+                    }
 
-            $req                                       = new \StdClass();
-            $req->header                               = static::$request->header;
-            $req->class                                = $class;
-            $req->method                               = $method;
-            $req->auth                                 = $auth;
-            $req->path                                 = $path;
-            $req->rule                                 = $rule;
-            $req->fd                                   = $frame->fd;
+                    $req->header['token'] =  $info['token'] ?? '';
+                    $req->all    = $info['data']??[];
+                    $req->receive = $info['receive']??null;
+                    
+                    list($path, $class, $method, $rule, $auth) = App::parseUri($url);
+                    
+                    $req->receive ??= $method;
+                    $req->class  = $class;
+                    $req->method = $method;
+                    $req->auth   = $auth;
+                    $req->path   = $path;
+                    $req->rule   = $rule;
+                    $req->fd     = $frame->fd;
+                    break;
+                default:
+                    
+                   
+                    if (!$info = json_decode((string) $code, true) ?? null) {
+                        self::push('非法请求');
+                    }
+                    list($path, $class, $method, $rule, $auth) = App::parseUri($info['action']);
+                    
+                    $req->header['token'] = $info['token'] ?? '';
+                    $req->receive ??= $method;
+                    $req->all    = $info['data'];
+                    
+                    $req->socketio = false;
+                    $req->class  = $class;
+                    $req->method = $method;
+                    $req->auth   = $auth;
+                    $req->path   = $path;
+                    $req->rule   = $rule;
+                    $req->fd     = $frame->fd;
+
+                    break;
+            }
 
             
-
-            if (!is_array($info['data'])) {
-                $info['data'] = self::crypt($info['data'], true) ?? [];
-            }
-            $req->all    = $info['data'];
-            $req->header = ['token' => $info['token'] ?? ''];
-
             (new $class($req))->auth()->check()->before()->$method();
 
         } catch (\Swoole\ExitException $e) {
 
-            $res['action'] = $req->method;
-
-            $res = array_merge($res, json_decode($e->getStatus(), true));
-
+            $data = json_decode($e->getStatus(), true);
+          
+            if ($req->socketio) {
+                if ($data['code']!=1) {
+                    $server->push((int) $frame->fd, '42'.json_encode([$req->receive??'error',$data],256));
+                    return;
+                }
+                $res = '42' . json_encode([$req->receive, $data], 256);
+            } else {
+                $res['action'] = $req->method;
+                $res = json_encode(array_merge($res, $data),256);
+            }
+            
             if (!isset($res['uid'])) {
                 $uids = $frame->fd;
             } else {
@@ -90,13 +147,20 @@ class App
 
             foreach ($uids as $id) {
                 if ($server->isEstablished($id)) {
-                    $server->push((int) $id, json_encode($res, 256));
-                    // wlog($id);
+                    $server->push((int) $id, $res);
                 }
             }
         }
     }
 
+    /**
+     * [push description]
+     * @Author   Wayren
+     * @DateTime 2021-12-13T11:20:09+0800
+     * @param    array                    $data [description]
+     * @param    [type]                   $uid  [description]
+     * @return   [type]                         [description]
+     */
     public static function push($data = [], $uid = null)
     {
         if ($uid) {
@@ -215,7 +279,7 @@ class App
             $req->auth                                 = $auth;
             $req->rule                                 = $rule;
             $req->path                                 = $path;
-            $req->content = $request->getContent();
+            $req->content                              = $request->getContent();
 
             if (!$req->all = array_merge($request->get ?? [], $request->post ?? [])) {
                 $json = [];
@@ -229,10 +293,10 @@ class App
                     }
                 }
                 // suc($json);
-                $req->all = array_merge($req->all, $json??[]);
+                $req->all = array_merge($req->all, $json ?? []);
             }
             $req->files = $request->files;
-            
+
             $ret = (new $class($req))->auth()->check()->before()->$method();
             $response->end($ret);
 
@@ -286,6 +350,7 @@ class App
         if (isset($route[$uri])) {
             return $route[$uri];
         }
+        // print_r([$route, $uri]);
         err('非法请求');
 
     }
@@ -311,7 +376,7 @@ class App
 
             return $auth;
             // $tk = explode('|', $auth);
-         
+
             //API接口访问 只有一个时间值
             // if (count($tk)==1) {
             //     return null;
@@ -322,7 +387,7 @@ class App
             // }
 
             //api接口访问 非用户访问
-            
+
             // if(count($tk)==4){
             //     return array_combine(['crt', 'uid', 'role', 'auth'], $tk);
             // }
@@ -352,6 +417,6 @@ class App
             $data = json_encode($data);
         }
 
-        return base64_encode(openssl_encrypt((string)$data, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
+        return base64_encode(openssl_encrypt((string) $data, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
     }
 }
