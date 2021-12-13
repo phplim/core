@@ -63,7 +63,7 @@ class App
             }
 
             $req         = new \StdClass();
-            $req->header = static::$request->header;
+            $req->header = static::$request->header??[];
             $req->socketio = true;
             switch ($code) {
                 case 0:break;
