@@ -31,7 +31,8 @@ class Data
     public static function check($method, &$data)
     {
 
-        if ($rule = $GLOBALS['config']['rules'][strtolower((string) static::$rule)][$method] ?? null) {
+        if ($rule = Server::$extend['rule'][strtolower((string) static::$rule)][$method] ?? null) {
+            
             $vars = array_keys($rule);
             //过滤非法参数
             foreach ($data as $k => $v) {

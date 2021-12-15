@@ -6,7 +6,7 @@ use \swoole\Timer;
 
 class App
 {
-    public static $cache = null, $config = [], $request = null;
+    public static $cache = null, $config = [], $request = null,$ext = null;
 
     private $req = null;
     /**
@@ -70,7 +70,7 @@ class App
 
             $req         = new \StdClass();
             $req->header = static::$request->header??[];
-            $req->socketio = true;
+            $req->socketio = 1;
             switch ($code) {
                 case 0:break;
                 case 2:break;
@@ -100,7 +100,7 @@ class App
                     $req->fd     = $frame->fd;
                     break;
                 default:
-                    $req->socketio = false;
+                    $req->socketio = 0;
                    
                     if (!$info = json_decode((string) $code, true) ?? null) {
                         err('非法请求');
@@ -268,6 +268,7 @@ class App
      */
     public static function request($request, $response)
     {
+ 
         if ($request->server['path_info'] == '/favicon.ico' || $request->server['request_uri'] == '/favicon.ico') {
             $response->end();
             return;

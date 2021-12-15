@@ -7,14 +7,21 @@ use \swoole\Timer;
 
 class Server
 {
-    public static $cache, $ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null, $MysqlPoolNum = 0;
+    public static $io, $extend, $cache, $ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null, $MysqlPoolNum = 0;
 
     public static function run($daemonize = false)
     {
+        Configer::init();
+
+        static::$io = new \stdClass;
+
+        if (method_exists(\app\Hook::class, 'boot')) {
+            \app\Hook::boot();
+        }
+
         if (!is_dir(ROOT . 'public')) {
             mkdir(ROOT . 'public', true);
         }
-
         self::$cache = new \Yac();
         \Swoole\Coroutine::set(['enable_deadlock_check' => null]);
         $config = [
@@ -36,15 +43,8 @@ class Server
             'enable_static_handler' => true,
         ];
 
-        if (method_exists(\app\Hook::class, 'boot')) {
-            \app\Hook::boot();
-        }
-
-        self::$server         = new \Swoole\WebSocket\Server('0.0.0.0', (int) APP_HW_PORT);
-        self::$server->config = config();
-        self::$server->DataConfig = Config::loadDataConfig();//加载数据配置
-        self::$server->ol=['pc'=>[],'wx'=>[],'client'=>[]];//用户在线
-        $app                  = new App();
+        self::$server = new \Swoole\WebSocket\Server('0.0.0.0', (int) APP_HW_PORT);
+        $app          = new App();
         self::$server->set($config);
         self::$server->on('start', fn() => cli_set_process_title(APP_NAME . '-master'));
         self::$server->on('managerstart', ['\lim\Server', 'managerstart']);
@@ -57,14 +57,11 @@ class Server
         self::$server->on('close', fn() => '');
         self::$server->on('request', [$app, 'request']);
         self::$server->start();
-
     }
 
     public static function managerstart($server)
     {
         self::loadTasker();
-
-        // wlog('sss');
     }
 
     public static function WorkerStart($server, int $workerId)
@@ -72,9 +69,6 @@ class Server
 
         try {
 
-            Timer::tick(5 * 1000, function () {
-                $GLOBALS['config'] = (new \Yac)->get(APP_NAME);
-            });
             //清理缓存
             if (function_exists('opcache_reset')) {
                 opcache_reset();
@@ -94,6 +88,9 @@ class Server
                 }
             } else {
                 cli_set_process_title(APP_NAME . '-worker');
+                //  Timer::tick(5 * 1000, function () use($workerId) {
+                //     wlog($workerId.' '.(self::$server->extend->request??22));
+                // });
             }
         } catch (\Swoole\ExitException $e) {
             wlog($e->getStatus());
@@ -103,7 +100,6 @@ class Server
 
     private static function loadTasker()
     {
-
         if (APP_ENV == 'dev') {
             return;
         }

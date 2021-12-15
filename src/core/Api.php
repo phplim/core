@@ -20,7 +20,8 @@ class Api
     {
         list($f, $m) = explode('.', $this->req->rule);
 
-        if ($rule = $GLOBALS['config']['rules'][strtolower($f)][$m] ?? null) {
+        if ($rule = Server::$extend['rule'][strtolower($f)][$m] ?? null) {
+            
             $vars = array_keys($rule);
             //过滤非法参数
             foreach ($this->data as $k => $v) {

@@ -1,22 +1,31 @@
 <?php
 declare (strict_types = 1);
-define('ROOT', strstr(__DIR__, 'vendor', true));
-define('APP', ROOT . 'app/');
+
+if (!defined('ROOT')) {
+    define('ROOT', strstr(__DIR__, 'vendor', true));
+}
+
+if (!defined('APP')) {
+    define('APP', ROOT . 'app/');
+}
+
+if (!defined('APP_ENV')) {
+    define('APP_ENV', is_file(ROOT . '.dev') ? 'dev' : 'pro');
+}
 
 spl_autoload_register('loader');
-new \lim\Config;
-use \lim\Server;
 
+
+use \lim\Server;
 
 function ti($fn)
 {
-    echo '过程开始'.PHP_EOL;
+    echo '过程开始' . PHP_EOL;
     $s = microtime(true);
     $fn();
-    echo '过程结束'.PHP_EOL;
-    echo '过程耗时:'.(microtime(true) - $s) . '秒'.PHP_EOL;
+    echo '过程结束' . PHP_EOL;
+    echo '过程耗时:' . (microtime(true) - $s) . '秒' . PHP_EOL;
 }
-
 
 function data($data)
 {
@@ -25,15 +34,12 @@ function data($data)
 
 function config($key = null)
 {
-    if (!$key) {
-        return $GLOBALS['config'];
-    }
-    return \lim\Config::get($key);
+    return \lim\Configer::get($key);
 }
 
 function suc($data = [], $message = 'success', $code = 1)
 {
-    if (DATA_CRYPT==1) {
+    if (DATA_CRYPT == 1) {
         $data = \lim\App::crypt($data);
     }
     exit(json_encode(['code' => $code, 'message' => $message, 'data' => $data], 256));

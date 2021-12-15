@@ -74,6 +74,13 @@ class Db
         }
     }
 
+    public static function pdo($db)
+    {
+        $dsn       = "mysql:host={$db['host']};dbname={$db['database']};port={$db['port']};charset={$db['charset']}";
+        $opt       = [\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION];
+        return new \PDO($dsn, $db['username'], $db['password'], $opt);
+    }
+
     public static function __callStatic($method, $args)
     {
         try {
