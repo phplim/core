@@ -43,6 +43,7 @@ class Server
         self::$server         = new \Swoole\WebSocket\Server('0.0.0.0', (int) APP_HW_PORT);
         self::$server->config = config();
         self::$server->DataConfig = Config::loadDataConfig();//加载数据配置
+        self::$server->ol=['pc'=>[],'wx'=>[],'client'=>[]];//用户在线
         $app                  = new App();
         self::$server->set($config);
         self::$server->on('start', fn() => cli_set_process_title(APP_NAME . '-master'));
