@@ -16,7 +16,10 @@ if (!defined('APP_ENV')) {
 spl_autoload_register('loader');
 
 
+use \lim\Configer;
 use \lim\Server;
+
+Configer::init();
 
 function ti($fn)
 {
@@ -34,7 +37,7 @@ function data($data)
 
 function config($key = null)
 {
-    return \lim\Configer::get($key);
+    return Configer::get($key);
 }
 
 function suc($data = [], $message = 'success', $code = 1)

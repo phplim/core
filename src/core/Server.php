@@ -11,7 +11,7 @@ class Server
 
     public static function run($daemonize = false)
     {
-        Configer::init();
+        // Configer::init();
 
         static::$io = new \stdClass;
 
