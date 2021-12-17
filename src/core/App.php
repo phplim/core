@@ -58,15 +58,17 @@ class App
                 return;
             }
 
-            wlog($frame->data);
+            
+            $index = strpos($frame->data, '[');
 
-            if ($index = strpos($frame->data, '[')) {
+            if ($index < 4 && $index > 0) {
                 $code = substr($frame->data, 0, $index);
                 $data = json_decode(substr($frame->data, $index), true);
             } else {
                 $code = $frame->data;
                 $data = '';
             }
+
 
             $req         = new \StdClass();
             $req->header = static::$request->header??[];
@@ -102,7 +104,9 @@ class App
                 default:
                     $req->socketio = 0;
                    
-                    if (!$info = json_decode((string) $code, true) ?? null) {
+                    $info = json_decode($code, true)??null;
+                  
+                    if (!$info) {
                         err('非法请求');
                         return;
                     }

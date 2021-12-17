@@ -5,7 +5,7 @@ namespace lim;
 
 class Data
 {
-    const AA = 22;
+
     public static $user = false, $database = APP_ENV, $table = null, $rule = null ,$data=[],$config=[];
 
     public static function init($table='')

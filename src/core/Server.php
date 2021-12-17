@@ -11,8 +11,6 @@ class Server
 
     public static function run($daemonize = false)
     {
-        // Configer::init();
-
         static::$io = new \stdClass;
 
         if (method_exists(\app\Hook::class, 'boot')) {

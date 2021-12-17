@@ -1,20 +1,7 @@
 <?php
 declare (strict_types = 1);
 
-if (!defined('ROOT')) {
-    define('ROOT', strstr(__DIR__, 'vendor', true));
-}
-
-if (!defined('APP')) {
-    define('APP', ROOT . 'app/');
-}
-
-if (!defined('APP_ENV')) {
-    define('APP_ENV', is_file(ROOT . '.dev') ? 'dev' : 'pro');
-}
-
-spl_autoload_register('loader');
-
+spl_autoload_register();
 
 use \lim\Configer;
 use \lim\Server;
@@ -69,7 +56,7 @@ function pusher($data = [], $fd = null)
     if ($fd === null) {
         print_r('null');
     }
-
+    
 }
 
 function loader($class)

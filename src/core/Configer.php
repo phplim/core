@@ -4,19 +4,38 @@ namespace lim;
 
 use function \Swoole\Coroutine\run;
 
+
 class Configer
 {
     private static $key = [] ,$data = [];
 
     public static function init()
     {
+        static::define();
         self::$data = static::filesToArray('config');
         self::$data['model'] = static::filesToArray('config/data');
         self::$data['rule'] = static::filesToArray('config/rule',fn($name,$path)=>static::pareRule($name, include $path));
         static::loadDb();
         ksort(self::$data);
         Server::$extend = self::$data;
+
         wlog('配置文件');
+    }
+
+    public static function define()
+    {
+        if (!defined('ROOT')) {
+            define('ROOT', strstr(__DIR__, 'vendor', true));
+        }
+
+        if (!defined('APP')) {
+            define('APP', ROOT . 'app/');
+        }
+
+        if (!defined('APP_ENV')) {
+            define('APP_ENV', is_file(ROOT . '.dev') ? 'dev' : 'pro');
+        }
+        wlog('define');
     }
 
 

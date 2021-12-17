@@ -478,6 +478,7 @@ class query
         if (APP_ENV == 'dev') {
             wlog($sql);
         }
+        
         try {
             return $this->pdo->query($sql);
         } catch (\PDOException $e) {
@@ -493,7 +494,7 @@ class query
         } else {
 
             Db::$pool[$this->db]->put($this->pdo);
-            wlog($this->db.' put '.Db::$poolNum[$this->db]);
+            // wlog($this->db.' put '.Db::$poolNum[$this->db]);
         }
     }
 }
