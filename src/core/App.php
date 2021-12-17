@@ -59,9 +59,9 @@ class App
             }
 
             
+            //大括号的位置大于0小于3的时候 说明是 socket.io 请求的具体数据
             $index = strpos($frame->data, '[');
-
-            if ($index < 4 && $index > 0) {
+            if ($index <= 2 && $index > 0) {
                 $code = substr($frame->data, 0, $index);
                 $data = json_decode(substr($frame->data, $index), true);
             } else {
