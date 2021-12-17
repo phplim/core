@@ -1,7 +1,7 @@
 <?php
 declare (strict_types = 1);
 
-spl_autoload_register();
+spl_autoload_register('loader');
 
 use \lim\Configer;
 use \lim\Server;
