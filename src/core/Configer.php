@@ -17,6 +17,9 @@ class Configer
         self::$data['rule'] = static::filesToArray('config/rule',fn($name,$path)=>static::pareRule($name, include $path));
         static::loadDb();
         ksort(self::$data);
+
+        io('config',self::$data);
+        
         Server::$extend = self::$data;
 
         wlog('配置文件');
@@ -39,9 +42,17 @@ class Configer
     }
 
 
-    public static function set($value='')
+    public static function set($key,$value)
     {
-        // todo
+        $arr = explode('.',$key);
+        print_r($arr);
+        $b="['a']['n']";
+        $a=['a'=>['b'=>2]];
+        wlog($a);
+
+        $a = json_decode($b);
+
+        print_r($a);
     }
 
     public static function get($key = '')

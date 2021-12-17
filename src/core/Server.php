@@ -7,10 +7,14 @@ use \swoole\Timer;
 
 class Server
 {
-    public static $io, $extend, $cache, $ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null, $MysqlPoolNum = 0;
+    public static $io, $extend, $cache=null, $ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null, $MysqlPoolNum = 0;
 
     public static function run($daemonize = false)
     {
+        if (!static::$cache) {
+            static::$cache = new \Yac();
+        }
+        
         static::$io = new \stdClass;
 
         if (method_exists(\app\Hook::class, 'boot')) {
@@ -20,7 +24,7 @@ class Server
         if (!is_dir(ROOT . 'public')) {
             mkdir(ROOT . 'public', true);
         }
-        self::$cache = new \Yac();
+        
         \Swoole\Coroutine::set(['enable_deadlock_check' => null]);
         $config = [
 
@@ -67,6 +71,12 @@ class Server
 
         try {
 
+            //同步配置文件
+            Timer::tick(60 * 1000, function () use($workerId) {
+                $io = new \Yac('config');
+                static::$extend = io('config');
+            });
+
             //清理缓存
             if (function_exists('opcache_reset')) {
                 opcache_reset();
@@ -86,9 +96,7 @@ class Server
                 }
             } else {
                 cli_set_process_title(APP_NAME . '-worker');
-                //  Timer::tick(5 * 1000, function () use($workerId) {
-                //     wlog($workerId.' '.(self::$server->extend->request??22));
-                // });
+         
             }
         } catch (\Swoole\ExitException $e) {
             wlog($e->getStatus());
