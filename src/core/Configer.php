@@ -13,16 +13,17 @@ class Configer
     {
         static::define();
         self::$data = static::filesToArray('config');
+        wlog('配置参数');
         self::$data['model'] = static::filesToArray('config/data');
+        wlog('配置模型');
         self::$data['rule'] = static::filesToArray('config/rule',fn($name,$path)=>static::pareRule($name, include $path));
+        wlog('配置规则');
         static::loadDb();
         ksort(self::$data);
-
         io('config',self::$data);
-        
+        wlog('缓存配置');
         Server::$extend = self::$data;
-
-        wlog('配置文件');
+        wlog('同步配置');
     }
 
     public static function define()
@@ -38,21 +39,39 @@ class Configer
         if (!defined('APP_ENV')) {
             define('APP_ENV', is_file(ROOT . '.dev') ? 'dev' : 'pro');
         }
-        wlog('define');
+        wlog('配置常量');
     }
 
-
+    /**
+     * 配置缓存
+     * @Author   Wayren
+     * @DateTime 2021-12-17T19:06:12+0800
+     * @param    [type]                   $key   [description]
+     * @param    [type]                   $value [description]
+     */
     public static function set($key,$value)
     {
         $arr = explode('.',$key);
-        print_r($arr);
-        $b="['a']['n']";
-        $a=['a'=>['b'=>2]];
-        wlog($a);
+        
+        $n=count($arr);
 
-        $a = json_decode($b);
+        $j='';
 
-        print_r($a);
+        foreach ($arr as $k) {
+            $j.='{"'.$k.'":';
+        }
+        
+        $j.=json_encode($value);
+        
+        for ($i=0; $i <$n ; $i++) { 
+            $j.='}';
+        }
+
+        $seter = json_decode($j,true);
+        $old = io('config');
+        $new = array_merge($old,$seter);
+        io('config',$new);
+        wlog('配置缓存');
     }
 
     public static function get($key = '')
@@ -182,7 +201,9 @@ class Configer
             $role[$v['id']] = json_decode($v['auth'], true);
         }
         self::$data['route'] = $route;
+        wlog('配置路由');
         self::$data['role']  = $role;
+        wlog('配置角色');
     }
 
     private static function pareRule($name, $rules)
