@@ -73,7 +73,7 @@ class Server
         try {
 
             //同步配置文件
-            Timer::tick(10 * 1000, fn() => static::$extend = io('config'));
+            Timer::tick(10 * 1000, fn() => static::$extend = uc('config'));
 
             //清理缓存
             if (function_exists('opcache_reset')) {

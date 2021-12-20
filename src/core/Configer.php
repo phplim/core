@@ -20,7 +20,7 @@ class Configer
         wlog('配置规则');
         static::loadDb();
         ksort(self::$data);
-        io('config',self::$data);
+        uc('config',self::$data);
         wlog('缓存配置');
         Server::$extend = self::$data;
         wlog('同步配置');
@@ -39,6 +39,7 @@ class Configer
         if (!defined('APP_ENV')) {
             define('APP_ENV', is_file(ROOT . '.dev') ? 'dev' : 'pro');
         }
+        
         wlog('配置常量');
     }
 
@@ -68,9 +69,9 @@ class Configer
         }
 
         $seter = json_decode($j,true);
-        $old = io('config');
+        $old = uc('config');
         $new = array_merge($old,$seter);
-        io('config',$new);
+        uc('config',$new);
         wlog('配置缓存');
     }
 

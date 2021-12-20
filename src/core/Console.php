@@ -58,10 +58,6 @@ class Console
                     wlog('create app/api/Api.php');
                 }
 
-                if (!is_file(ROOT . 'app/api/Demo.php')) {
-                    copy(ROOT . 'vendor/phplim/core/src/source/Demo.php', ROOT . 'app/api/Demo.php');
-                    wlog('create app/api/Demo.php');
-                }
 
                 if (!is_file(ROOT . 'app/config/db.php')) {
                     copy(ROOT . 'vendor/phplim/core/src/source/db.php', ROOT . 'app/config/db.php');
