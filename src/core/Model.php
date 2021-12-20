@@ -17,11 +17,11 @@ class Model
     {
 
         try {
-            if (Server::$server) {
-                static::$config = Server::$server->DataConfig[$method] ?? [];
-            } else {
-                static::$config = Config::loadDataConfig()[$method] ?? [];
-            }
+            if (!Server::$server) {
+                Configer::init();
+                wlog('model init');
+            } 
+            static::$config = config($method) ?? [];
             $class = '\\app\\data\\' . $method;
             return new $class(array_shift($args));
         } catch (Throwable $e) {

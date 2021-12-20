@@ -8,6 +8,35 @@ use \lim\Server;
 
 Configer::init();
 
+
+/**
+ * 创建目录
+ * @Author   Wayren
+ * @DateTime 2021-12-20T14:15:08+0800
+ * @param    string                   $dirs [description]
+ * @param    [type]                   $base [description]
+ * @return   [type]                         [description]
+ */
+function lim_mkdir($dirs='',$base='')
+{
+    $dirs =  explode(',',$dirs);
+
+    foreach ($dirs as $path) {
+        
+        $dir = $base.$path;
+        
+        if (is_dir($dir)) {
+            echo 'isdir '.$dir.PHP_EOL;
+            continue;
+        }
+
+        mkdir($dir, 0777);
+
+        echo 'mkdir '.$dir.PHP_EOL;
+    }
+
+}
+
 /**
  * 缓存方法
  * @Author   Wayren
@@ -38,6 +67,11 @@ function ti($fn)
     $fn();
     echo '过程结束' . PHP_EOL;
     echo '过程耗时:' . (microtime(true) - $s) . '秒' . PHP_EOL;
+}
+
+function f($data=null)
+{
+    return new \lim\DataHandle($data);
 }
 
 function data($data)

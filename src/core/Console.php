@@ -51,41 +51,7 @@ class Console
 
                 echo "Less is More!" . PHP_EOL;
 
-                if (!is_dir(ROOT . 'logs')) {
-                    mkdir(ROOT . 'logs', 0777);
-                    wlog('mkdir logs');
-                }
-                
-                if (!is_dir(ROOT . 'app')) {
-                    mkdir(ROOT . 'app', 0777);
-                    file_put_contents(ROOT . '.dev', time());
-                    wlog('mkdir app');
-                }
-
-                if (!is_dir(ROOT . 'app/api')) {
-                    mkdir(ROOT . 'app/api', 0777);
-                    wlog('mkdir app/api');
-                }
-                
-                if (!is_dir(ROOT . 'app/rule')) {
-                    mkdir(ROOT . 'app/rule', 0777);
-                    wlog('mkdir app/rule');
-                }
-                
-                if (!is_dir(ROOT . 'app/task')) {
-                    mkdir(ROOT . 'app/task', 0777);
-                    wlog('mkdir app/task');
-                }
-
-                if (!is_dir(ROOT . 'app/config')) {
-                    mkdir(ROOT . 'app/config', 0777);
-                    wlog('mkdir app/config');
-                }
-
-                if (!is_dir(ROOT . 'public')) {
-                    mkdir(ROOT . 'public', 0777);
-                    wlog('mkdir public');
-                }
+                lim_mkdir('logs,app,app/api,app/task,app/config,app/config/rule,public',ROOT);
 
                 if (!is_file(ROOT . 'app/api/Api.php')) {
                     copy(ROOT . 'vendor/phplim/core/src/source/Api.php', ROOT . 'app/api/Api.php');
@@ -102,9 +68,9 @@ class Console
                     wlog('create app/config/db.php');
                 }
 
-                if (!is_file(ROOT . 'app/rule/demo.php')) {
-                    copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/rule/demo.php');
-                    wlog('create app/rule/demo.php');
+                if (!is_file(ROOT . 'app/config/rule/demo.php')) {
+                    copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/config/rule/demo.php');
+                    wlog('create app/config/rule/demo.php');
                 }
 
                 if (!is_file(ROOT . 'app/function.php')) {
