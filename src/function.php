@@ -46,7 +46,7 @@ function lim_mkdir($dirs='',$base='')
  * @param    integer                  $t [description]
  * @return   [type]                      [description]
  */
-function uc($k, $v = null, $t = 0)
+function uc($k, $v = false, $t = 0)
 {
     if (!Server::$cache) {
         Server::$cache = new \Yac();
