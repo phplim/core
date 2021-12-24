@@ -234,8 +234,8 @@ class query
                     '<>'       => " $key[0] <> '$v'",
                     'json_has' => " JSON_CONTAINS_PATH( {$key[0]},'all','$.\"{$v}\"' )",
                     'json_key' => " {$key[0]}->>'$.\"" . array_keys($v)[0] . "\"' = '" . array_shift($v) . "'",
-                    'null'     => " `$key[0]` IS NULL",
-                    'notnull'  => " `$key[0]` IS NOT NULL",
+                    'null'     => " $key[0] IS NULL",
+                    'notnull'  => " $key[0] IS NOT NULL",
                 };
             }
             if (isset($where)) {

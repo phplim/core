@@ -19,8 +19,11 @@ class Dbs
                 ->withPassword($c['password'])
                 ->withOptions([
                     \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, //查询模式
+                    // \PDO::ATTR_PERSISTENT => true, //长连接
                     \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION, //启用异常模式
-                ]),5
+                    \PDO::ATTR_STRINGIFY_FETCHES  => false,
+                    \PDO::ATTR_EMULATE_PREPARES   => false,//这2个是跟数字相关的设置
+                ])
         );
         wlog($db . ' init');
     }
@@ -35,10 +38,9 @@ class Dbs
         $result = null;
 
         if (!isset(Server::$MysqlPool[$info->database])) {
-            self::init($info->database);
+            static::init($info->database);
         }
 
-        // print_r($info);
         $pdo = Server::$MysqlPool[$info->database]->get();
 
         try {
@@ -70,7 +72,7 @@ class Dbs
                     if (!$statement->execute()) {
                         throw new RuntimeException('Execute failed');
                     }
-                    wlog('up:'.$statement->rowCount());
+                    $result = $statement->rowCount();
                     break;
                 default:
                     // code...
@@ -92,16 +94,16 @@ class Dbs
     public static function __callStatic($method, $args)
     {
         try {
-            return call_user_func_array([new query1(), $method], $args);
+            return call_user_func_array([new dbsQuery(), $method], $args);
         } catch (Throwable $e) {
             print_r($e);
         }
     }
 }
 
-class query1
+class dbsQuery
 {
-    public $database = 'default', $run = true,$where=[],$sets=[];
+    public $database = 'default', $run = true, $where = [], $sets = [], $cols = '*';
 
     function use ($database = 'default') {
         $this->database = $database;
@@ -127,23 +129,34 @@ class query1
         return $this;
     }
 
-    public function jsonSet($col,$key,$value)
+    public function jsonSet($col, $key, $value)
     {
-        $this->sets[] = $col.' = JSON_SET(' . $col . ',\'$."' . $key . '"\',\'' . $value . '\') ';
-        return $this; 
-    }
-
-    public function where($key='',$symbol=null,$value=null)
-    {
-        $this->where = $where;
+        $this->sets[] = $col . ' = JSON_SET(' . $col . ',\'$."' . $key . '"\',\'' . $value . '\') ';
         return $this;
     }
 
-
-    public function whereIn($col,$data=[])
+    public function where($key = '', $symbol = null, $value = null)
     {
-        $this->where[]= $col.' IN (\''.implode('\',\'',$data).'\')';
+        if ($value == null && $symbol != null) {
+            $value  = $symbol;
+            $symbol = '=';
+        }
+        $this->where[] = $key . ' ' . $symbol . ' "' . $value . '"';
         return $this;
+    }
+
+    public function whereIn($col, $data = [])
+    {
+        $this->where[] = $col . ' IN (\'' . implode('\',\'', $data) . '\')';
+        return $this;
+    }
+
+    public function whereSql()
+    {
+        if ($this->where) {
+            return 'WHERE ' . implode(' AND ', $this->where);
+        }
+        return '';
     }
 
     public function insert($data = [], $most = false)
@@ -172,34 +185,34 @@ class query1
         $this->action = 'update';
 
         foreach ($data as $k => $v) {
-            
-            if($v===null){
+
+            if ($v === null) {
                 continue;
             }
 
             if (is_array($v)) {
-                $v = json_encode($v,256);
+                $v = json_encode($v, 256);
             }
-            
+
             if (is_string($v)) {
-                $v = "'".$v."'";
+                $v = "'" . $v . "'";
             }
-            
-            $tmp[]=$k.' = '.$v;
+
+            $tmp[] = $k . ' = ' . $v;
         }
 
-        $this->sets = array_merge($this->sets,$tmp??[]);
+        $this->sets = array_merge($this->sets, $tmp ?? []);
 
         $sets = implode(' , ', $this->sets);
 
-        $this->sql    = "UPDATE {$this->table} SET {$sets} WHERE ".implode(' AND ',$this->where);
+        $this->sql = "UPDATE {$this->table} SET {$sets} " . $this->whereSql();
         return $this->todo();
     }
 
-    public function select($data = [])
+    public function select()
     {
         $this->action = 'select';
-        $this->sql    = "SELECT {$this->cols} FROM {$this->table}";
+        $this->sql    = "SELECT {$this->cols} FROM {$this->table} " . $this->whereSql();
         return $this->todo();
     }
 
@@ -216,9 +229,6 @@ class query1
     {
         try {
             print_r([$method, $args]);
-            // unset($this->table);
-            // dbs::$method($this);
-            // wlog('do');
         } catch (Throwable $e) {
             print_r($e);
         }

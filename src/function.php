@@ -69,7 +69,7 @@ function ti($fn)
     echo '过程耗时:' . (microtime(true) - $s) . '秒' . PHP_EOL;
 }
 
-function f($data=null)
+function nt($data=null)
 {
     return new \lim\DataHandle($data);
 }
