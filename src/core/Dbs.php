@@ -7,6 +7,7 @@ use \Swoole\Database\PDOPool;
 
 class Dbs
 {
+    public static $commit = false, $query = [], $sql = '';
     public static function init($db = 'default')
     {
         $c                      = config('db.mysql')[$db];
@@ -22,7 +23,7 @@ class Dbs
                     // \PDO::ATTR_PERSISTENT => true, //长连接
                     \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION, //启用异常模式
                     \PDO::ATTR_STRINGIFY_FETCHES  => false,
-                    \PDO::ATTR_EMULATE_PREPARES   => false,//这2个是跟数字相关的设置
+                    \PDO::ATTR_EMULATE_PREPARES   => false, //这2个是跟数字相关的设置
                 ])
         );
         wlog($db . ' init');
@@ -30,7 +31,39 @@ class Dbs
 
     public static function commit($fn)
     {
+        static::$commit = true;
+        static::$query = [];
+        static::$sql = '';
         $fn();
+        static::$commit = false;
+       
+
+        // print_r([static::$query,static::$sql]);
+        return static::exec(static::$sql);
+    }
+
+    public static function exec($sql)
+    {
+        $result = null;
+        // wlog($sql);
+        if (!isset(Server::$MysqlPool[static::$query->database])) {
+            static::init(static::$query->database);
+        }
+
+        $pdo = Server::$MysqlPool[static::$query->database]->get();
+
+        try {
+            $pdo->beginTransaction();
+            $result = $pdo->exec($sql);
+            $pdo->commit();
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            if (!str_contains($e->getMessage(), 'Duplicate')) {
+                wlog($sql . ' ' . $e->getMessage(), 'db');
+            }
+        }
+        Server::$MysqlPool[static::$query->database]->put($pdo);
+        return $result;
     }
 
     public static function run($info)
@@ -52,6 +85,7 @@ class Dbs
 
             switch ($info->action) {
                 case 'insert':
+
                     foreach ($info->data as $key => $v) {
                         array_walk($v, function (&$e) {$e = is_array($e) ? json_encode($e, 256) : $e;});
                         print_r($v);
@@ -74,6 +108,8 @@ class Dbs
                     }
                     $result = $statement->rowCount();
                     break;
+                case 'commit':
+                    wlog(static::$sql);
                 default:
                     // code...
                     break;
@@ -82,7 +118,11 @@ class Dbs
             $pdo->commit();
         } catch (\Throwable $e) {
             $pdo->rollBack();
-            wlog($e->getMessage());
+
+            if (!str_contains($e->getMessage(), 'Duplicate')) {
+                wlog($sql . ' ' . $e->getMessage(), 'db');
+            }
+            // wlog($e->getMessage());
         }
 
         Server::$MysqlPool[$info->database]->put($pdo);
@@ -129,9 +169,15 @@ class dbsQuery
         return $this;
     }
 
-    public function jsonSet($col, $key, $value)
+    public function jsonSet($col, $key, $value = '')
     {
         $this->sets[] = $col . ' = JSON_SET(' . $col . ',\'$."' . $key . '"\',\'' . $value . '\') ';
+        return $this;
+    }
+
+    public function jsonUpdate($keys = '')
+    {
+        $this->jsonUpdateKeys = explode(',', $keys);
         return $this;
     }
 
@@ -167,12 +213,24 @@ class dbsQuery
         }
         $this->data = $data;
 
-        $cur       = end($data);
-        $key       = '(`' . implode('`,`', array_keys($cur)) . '`)';
-        $pos       = '(' . implode(',', array_fill(0, count($cur), '?')) . ')';
-        $this->sql = "INSERT INTO {$this->table} {$key} VALUES $pos";
+        $cur = end($data);
+        $key = '(`' . implode('`,`', array_keys($cur)) . '`)';
 
-        return $this;
+        foreach ($data as $k => $v) {
+            $value = [];
+            foreach ($v as $kk => $vv) {
+                if (is_array($vv)) {
+                    $vv = json_encode($vv, 256);
+                }
+                $value[] = "'" . $vv . "'";
+            }
+            $po[] = '(' . implode(',', $value) . ')';
+        }
+        $pos = implode(',', $po);
+        // $pos       = '(' . implode(',', array_fill(0, count($cur), '?')) . ')';
+        $this->sql = "INSERT INTO {$this->table} {$key} VALUES $pos;";
+
+        return $this->todo();
     }
 
     public function delete($data = [])
@@ -180,9 +238,18 @@ class dbsQuery
 
     }
 
-    public function update($data = [])
+    public function update($data = [], $whereKeys = '')
     {
         $this->action = 'update';
+
+        if ($whereKeys) {
+            $where = explode(',', $whereKeys);
+            foreach ($where as $key) {
+                if (isset($data[$key])) {
+                    $this->where($key, $data[$key]);
+                }
+            }
+        }
 
         foreach ($data as $k => $v) {
 
@@ -190,11 +257,21 @@ class dbsQuery
                 continue;
             }
 
+            //解析JSON
+            if (isset($this->jsonUpdateKeys) && in_array($k, $this->jsonUpdateKeys)) {
+                $this->jsonSet($k, key($v), end($v));
+                continue;
+            }
+
             if (is_array($v)) {
                 $v = json_encode($v, 256);
             }
 
+            //转义双引号
+            
+
             if (is_string($v)) {
+                $v = str_replace('\\"', '\\\\"', $v);
                 $v = "'" . $v . "'";
             }
 
@@ -205,7 +282,7 @@ class dbsQuery
 
         $sets = implode(' , ', $this->sets);
 
-        $this->sql = "UPDATE {$this->table} SET {$sets} " . $this->whereSql();
+        $this->sql = "UPDATE {$this->table} SET {$sets} " . $this->whereSql().";";
         return $this->todo();
     }
 
@@ -219,7 +296,14 @@ class dbsQuery
     public function todo()
     {
         if ($this->run) {
-            return dbs::run($this);
+
+            if (Dbs::$commit) {
+                Dbs::$sql .= $this->sql;
+                Dbs::$query = $this;
+            } else {
+                return dbs::run($this);
+            }
+
         } else {
             print_r($this);
         }
