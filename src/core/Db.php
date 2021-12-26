@@ -27,7 +27,7 @@ class Db
                         \PDO::ATTR_EMULATE_PREPARES=>false
                     ])
             );
-            wlog($db . ' init');
+            // wlog($db . ' init');
         } catch (\Throwable $e) {
             print_r($e);
             // exit;
