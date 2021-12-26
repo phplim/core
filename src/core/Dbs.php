@@ -26,7 +26,7 @@ class Dbs
                     \PDO::ATTR_EMULATE_PREPARES   => false, //这2个是跟数字相关的设置
                 ])
         );
-        wlog($db . ' init');
+        // wlog($db . ' init');
     }
 
     public static function commit($fn)
