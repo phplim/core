@@ -26,7 +26,8 @@ class Server
             mkdir(ROOT . 'public', true);
         }
 
-        \Swoole\Coroutine::set(['enable_deadlock_check' => null]);
+        \Swoole\Coroutine::set(['enable_deadlock_check' => null,'hook_flags'=> SWOOLE_HOOK_ALL]);
+        // \Co::set([]); 
         $config = [
 
             'reactor_num'           => 1,

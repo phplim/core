@@ -7,7 +7,7 @@ use \Swoole\Database\PDOPool;
 
 class Dbs
 {
-    public static $commit = false, $query = [], $sql = '';
+    public static $commit = false, $query = [], $sql = '', $pdo = null;
     public static function init($db = 'default')
     {
         $c                      = config('db.mysql')[$db];
@@ -29,31 +29,50 @@ class Dbs
         // wlog($db . ' init');
     }
 
-    public static function commit($fn,$todo = true)
+    public static function pdo($db = 'default')
+    {
+        try {
+            $c           = config('db.mysql')[$db];
+            $dsn         = "mysql:host={$c['host']};dbname={$c['database']};port={$c['port']};charset={$c['charset']}";
+            $opt         = [
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, 
+                \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION,
+            ];
+            return new \PDO($dsn, $c['username'], $c['password'], $opt);
+        } catch (\Throwable $e) {
+            return null;
+        }
+    }
+
+    public static function commit($fn, $todo = true)
     {
         static::$commit = true;
-        static::$query = [];
-        static::$sql = '';
+        static::$query  = [];
+        static::$sql    = '';
         $fn();
         static::$commit = false;
-       
+
         if ($todo) {
             return static::exec(static::$sql);
         }
         return static::$sql;
         // print_r([static::$query,static::$sql]);
-        
+
     }
 
     public static function exec($sql)
     {
         $result = null;
         // wlog($sql);
-        if (!isset(Server::$MysqlPool[static::$query->database])) {
-            static::init(static::$query->database);
-        }
+        // if (!isset(Server::$MysqlPool[static::$query->database])) {
+        //     static::init(static::$query->database);
+        // }
 
-        $pdo = Server::$MysqlPool[static::$query->database]->get();
+        // $pdo = Server::$MysqlPool[static::$query->database]->get();
+        if (!$pdo = static::pdo(static::$query->database)) {
+            wlog(static::$query->database.'连接失败');
+            return;
+        }
 
         try {
             $pdo->beginTransaction();
@@ -65,7 +84,8 @@ class Dbs
                 wlog($sql . ' ' . $e->getMessage(), 'db');
             }
         }
-        Server::$MysqlPool[static::$query->database]->put($pdo);
+        // Server::$MysqlPool[static::$query->database]->put($pdo);
+        $pdo=null;
         return $result;
     }
 
@@ -271,7 +291,6 @@ class dbsQuery
             }
 
             //转义双引号
-            
 
             if (is_string($v)) {
                 $v = str_replace('\\"', '\\\\"', $v);
@@ -285,7 +304,7 @@ class dbsQuery
 
         $sets = implode(' , ', $this->sets);
 
-        $this->sql = "UPDATE {$this->table} SET {$sets} " . $this->whereSql().";";
+        $this->sql = "UPDATE {$this->table} SET {$sets} " . $this->whereSql() . ";";
         return $this->todo();
     }
 
