@@ -29,7 +29,7 @@ class Dbs
         // wlog($db . ' init');
     }
 
-    public static function commit($fn)
+    public static function commit($fn,$todo = true)
     {
         static::$commit = true;
         static::$query = [];
@@ -37,9 +37,12 @@ class Dbs
         $fn();
         static::$commit = false;
        
-
+        if ($todo) {
+            return static::exec(static::$sql);
+        }
+        return static::$sql;
         // print_r([static::$query,static::$sql]);
-        return static::exec(static::$sql);
+        
     }
 
     public static function exec($sql)
