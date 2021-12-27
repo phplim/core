@@ -90,7 +90,19 @@ class Configer
 
         $arr= explode('.', $key);
 
-        return self::dotSplit($arr,$c);
+
+        foreach ($arr as $k => $v) {
+            if (!isset($c[$v])) {
+                return null;
+            }
+            $c  = $c[$v];
+        }
+
+        return $c;
+
+
+
+        // return self::dotSplit($arr,$c);
     }
 
     /**

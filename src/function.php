@@ -64,6 +64,13 @@ function uc($k=null, $v = false, $t = 0)
     return Server::$cache;   
 }
 
+/**
+ * redis cache
+ * @Author   Wayren
+ * @DateTime 2021-12-27T16:46:09+0800
+ * @param    [type]                   $db [description]
+ * @return   [type]                       [description]
+ */
 function rc($db = null)
 {
     
