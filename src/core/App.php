@@ -112,7 +112,7 @@ class App
                         return;
                     }
 
-                    list($path, $class, $method, $rule, $auth) = App::parseUri($info['action']);
+                    list($path, $class, $method, $rule, $auth,$name) = App::parseUri($info['action']);
                     
                     $req->header['token'] = $info['token'] ?? '';
                     $req->receive ??= $method;
@@ -120,6 +120,7 @@ class App
                     
                     $req->class  = $class;
                     $req->method = $method;
+                     $req->name = $name;
                     $req->auth   = $auth;
                     $req->path   = $path;
                     $req->rule   = $rule;
