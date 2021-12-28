@@ -91,11 +91,12 @@ class App
                     $req->all    = $info['data']??[];
                     $req->receive = $info['receive']??null;
                     
-                    list($path, $class, $method, $rule, $auth) = App::parseUri($url);
+                    list($path, $class, $method, $rule, $auth,$name) = App::parseUri($url);
                     
                     $req->receive ??= $method;
                     $req->class  = $class;
                     $req->method = $method;
+                    $req->name = $name;
                     $req->auth   = $auth;
                     $req->path   = $path;
                     $req->rule   = $rule;
@@ -284,11 +285,12 @@ class App
 
         try {
 
-            list($path, $class, $method, $rule, $auth) = App::parseUri($request->server['request_uri']);
+            list($path, $class, $method, $rule, $auth,$name) = App::parseUri($request->server['request_uri']);
             $req                                       = new \StdClass();
             $req->header                               = $request->header;
             $req->class                                = $class;
             $req->method                               = $method;
+            $req->name                               = $name;
             $req->auth                                 = $auth;
             $req->rule                                 = $rule;
             $req->path                                 = $path;

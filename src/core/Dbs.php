@@ -328,7 +328,8 @@ class dbsQuery
             }
 
         } else {
-            print_r($this);
+            return $this;
+            // print_r($this);
         }
     }
 

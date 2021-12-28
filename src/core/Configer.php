@@ -204,7 +204,8 @@ class Configer
                 $v['method'], 
                 $v['rule'], 
                 $v['top'] . '.' . $v['mid'], 
-                $v['speed']
+                $v['name'],
+                $v['speed'],
             ];
         }
 
