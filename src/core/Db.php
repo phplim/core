@@ -7,11 +7,11 @@ use \Swoole\Database\PDOPool;
 
 class Db
 {
-    public static $pool=[] ,$poolNum=[];
+    public static $pool = [], $poolNum = [];
     public static function init($db = 'default')
     {
         try {
-            $c                      = config('db.mysql')[$db];
+            $c               = config('db.mysql')[$db];
             self::$pool[$db] = new PDOPool((new PDOConfig)
                     ->withHost($c['host'])
                     ->withPort((int) $c['port'])
@@ -23,8 +23,8 @@ class Db
                         \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, //查询模式
                         // \PDO::ATTR_PERSISTENT => true, //长连接
                         \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION, //启用异常模式
-                        \PDO::ATTR_STRINGIFY_FETCHES=>false,
-                        \PDO::ATTR_EMULATE_PREPARES=>false
+                        \PDO::ATTR_STRINGIFY_FETCHES  => false,
+                        \PDO::ATTR_EMULATE_PREPARES   => false,
                     ])
             );
             // wlog($db . ' init');
@@ -76,8 +76,8 @@ class Db
 
     public static function pdo($db)
     {
-        $dsn       = "mysql:host={$db['host']};dbname={$db['database']};port={$db['port']};charset={$db['charset']}";
-        $opt       = [\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION];
+        $dsn = "mysql:host={$db['host']};dbname={$db['database']};port={$db['port']};charset={$db['charset']}";
+        $opt = [\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION];
         return new \PDO($dsn, $db['username'], $db['password'], $opt);
     }
 
@@ -97,11 +97,32 @@ class query
 
     public function __construct()
     {
+        // $this->db = 'default';
         $this->use();
     }
 
+    public function init()
+    {
+        try {
+            $c   = config('db.mysql')[$this->db];
+            $dsn = "mysql:host={$c['host']};dbname={$c['database']};port={$c['port']};charset={$c['charset']}";
+            $opt = [
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, //查询模式
+                // \PDO::ATTR_PERSISTENT => true, //长连接
+                \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION, //启用异常模式
+                \PDO::ATTR_STRINGIFY_FETCHES  => false,
+                \PDO::ATTR_EMULATE_PREPARES   => false,
+            ];
+            $this->pdo = new \PDO($dsn, $c['username'], $c['password'], $opt);
+        } catch (\Throwable $e) {
+            wlog($e->getMessage());
+            return null;
+        }
+    }
 
     function use ($db = 'default') {
+        // $this->db = $db;
+        // return $this;
 
         if (PHP_SAPI != 'cli') {
             if (!isset($this->pdo)) {
@@ -112,8 +133,8 @@ class query
             }
         } else {
             $this->db = $db;
-            if (!isset(Db::$pool[$this->db])||!isset(Db::$poolNum[$this->db])||Db::$poolNum[$this->db]<=1) {
-                Db::$poolNum[$this->db]=60;
+            if (!isset(Db::$pool[$this->db]) || !isset(Db::$poolNum[$this->db]) || Db::$poolNum[$this->db] <= 1) {
+                Db::$poolNum[$this->db] = 60;
                 Db::init($db);
             }
             $this->pdo = Db::$pool[$this->db]->get();
@@ -396,12 +417,12 @@ class query
             return end($ret);
         }
         if (isset($this->cacheKey)) {
-            Server::$cache->set($this->cacheKey,$ret,$this->cacheExp);
+            Server::$cache->set($this->cacheKey, $ret, $this->cacheExp);
         }
         return $ret;
     }
 
-    public function select($data = [],$call=null)
+    public function select($data = [], $call = null)
     {
 
         if (is_array($data)) {
@@ -410,15 +431,15 @@ class query
             $this->where = ' WHERE ' . $data;
         }
         $sql = "SELECT {$this->cols} FROM {$this->table}" . $this->where . $this->groupBy . $this->orderSql . $this->limit;
- 
-        $data      = $this->query($sql)->fetchAll();
-      
+
+        $data = $this->query($sql)->fetchAll();
+
         if ($this->count) {
             $total = $this->query("SELECT COUNT(*) AS t FROM {$this->table}" . $this->where)->fetch()['t'];
             return [(int) $total, $data];
         }
 
-        if ($call!==null) {
+        if ($call !== null) {
             foreach ($data as $k => $v) {
                 $call($v);
             }
@@ -429,7 +450,10 @@ class query
 
     public function execute($sql, $data)
     {
-        array_walk($data, function (&$e) {$e = is_array($e)||is_object($e) ? json_encode($e, 256) : $e;});
+        // if (!$this->pdo = $this->init()) {
+        //     return null;
+        // }
+        array_walk($data, function (&$e) {$e = is_array($e) || is_object($e) ? json_encode($e, 256) : $e;});
 
         if (APP_ENV == 'dev') {
             wlog($sql);
@@ -447,7 +471,7 @@ class query
             if (!str_contains($e->getMessage(), 'Duplicate')) {
                 wlog($sql . ' ' . $e->getMessage(), 'db');
             }
-            if (APP_ENV=='dev') {
+            if (APP_ENV == 'dev') {
                 wlog($sql . ' ' . $e->getMessage(), 'db');
             }
             return null;
@@ -456,13 +480,17 @@ class query
 
     public function exec($sql)
     {
+        // if (!$this->pdo = $this->init()) {
+        //     return null;
+        // }
+
         if (APP_ENV == 'dev') {
             wlog($sql);
         }
         try {
             $this->pdo->beginTransaction();
             $s = $this->pdo->exec($sql);
-             $this->pdo->commit();
+            $this->pdo->commit();
             return $s;
         } catch (\PDOException $e) {
             $this->pdo->rollBack();
@@ -475,10 +503,14 @@ class query
 
     public function query($sql)
     {
+        // if (!$this->pdo = $this->init()) {
+        //     return null;
+        // }
+        
         if (APP_ENV == 'dev') {
             wlog($sql);
         }
-        
+
         try {
             return $this->pdo->query($sql);
         } catch (\PDOException $e) {
@@ -489,12 +521,13 @@ class query
 
     public function __destruct()
     {
+        // $this->pdo = null;
+        // wlog('free pdo');
         if (PHP_SAPI != 'cli') {
             $this->pdo = null;
         } else {
 
             Db::$pool[$this->db]->put($this->pdo);
-            // wlog($this->db.' put '.Db::$poolNum[$this->db]);
         }
     }
 }
