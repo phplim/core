@@ -40,6 +40,7 @@ class Dbs
             ];
             return new \PDO($dsn, $c['username'], $c['password'], $opt);
         } catch (\Throwable $e) {
+            wlog($e->getMessage());
             return null;
         }
     }
@@ -70,7 +71,7 @@ class Dbs
 
         // $pdo = Server::$MysqlPool[static::$query->database]->get();
         if (!$pdo = static::pdo(static::$query->database)) {
-            wlog(static::$query->database.'连接失败');
+            // wlog(static::$query->database.'连接失败');
             return;
         }
 
