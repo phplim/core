@@ -64,15 +64,15 @@ class Dbs
     {
         $result = null;
         // wlog($sql);
-        if (!isset(Server::$MysqlPool[static::$query->database])) {
-            static::init(static::$query->database);
-        }
-
-        $pdo = Server::$MysqlPool[static::$query->database]->get();
-        // if (!$pdo = static::pdo(static::$query->database)) {
-        //     wlog(static::$query->database.'连接失败');
-        //     return;
+        // if (!isset(Server::$MysqlPool[static::$query->database])) {
+        //     static::init(static::$query->database);
         // }
+
+        // $pdo = Server::$MysqlPool[static::$query->database]->get();
+        if (!$pdo = static::pdo(static::$query->database)) {
+            wlog(static::$query->database.'连接失败');
+            return;
+        }
 
         try {
             $pdo->beginTransaction();
@@ -84,7 +84,7 @@ class Dbs
                 wlog($sql . ' ' . $e->getMessage(), 'db');
             }
         }
-        Server::$MysqlPool[static::$query->database]->put($pdo);
+        // Server::$MysqlPool[static::$query->database]->put($pdo);
         $pdo=null;
         return $result;
     }
