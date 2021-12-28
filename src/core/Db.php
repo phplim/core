@@ -103,6 +103,7 @@ class query
 
     public function init()
     {
+        // wlog('pdo init '.$this->db);
         try {
             $c   = config('db.mysql')[$this->db];
             $dsn = "mysql:host={$c['host']};dbname={$c['database']};port={$c['port']};charset={$c['charset']}";
@@ -113,7 +114,7 @@ class query
                 \PDO::ATTR_STRINGIFY_FETCHES  => false,
                 \PDO::ATTR_EMULATE_PREPARES   => false,
             ];
-            $this->pdo = new \PDO($dsn, $c['username'], $c['password'], $opt);
+            return new \PDO($dsn, $c['username'], $c['password'], $opt);
         } catch (\Throwable $e) {
             wlog($e->getMessage());
             return null;
@@ -121,8 +122,8 @@ class query
     }
 
     function use ($db = 'default') {
-        // $this->db = $db;
-        // return $this;
+        $this->db = $db;
+        return $this;
 
         if (PHP_SAPI != 'cli') {
             if (!isset($this->pdo)) {
@@ -450,9 +451,10 @@ class query
 
     public function execute($sql, $data)
     {
-        // if (!$this->pdo = $this->init()) {
-        //     return null;
-        // }
+        if (!$this->pdo = $this->init()) {
+            return null;
+        }
+        
         array_walk($data, function (&$e) {$e = is_array($e) || is_object($e) ? json_encode($e, 256) : $e;});
 
         if (APP_ENV == 'dev') {
@@ -480,9 +482,9 @@ class query
 
     public function exec($sql)
     {
-        // if (!$this->pdo = $this->init()) {
-        //     return null;
-        // }
+        if (!$this->pdo = $this->init()) {
+            return null;
+        }
 
         if (APP_ENV == 'dev') {
             wlog($sql);
@@ -503,10 +505,10 @@ class query
 
     public function query($sql)
     {
-        // if (!$this->pdo = $this->init()) {
-        //     return null;
-        // }
-        
+        if (!$this->pdo = $this->init()) {
+            return null;
+        }
+
         if (APP_ENV == 'dev') {
             wlog($sql);
         }
@@ -521,13 +523,13 @@ class query
 
     public function __destruct()
     {
-        // $this->pdo = null;
-        // wlog('free pdo');
+        $this->pdo = null;
+        // wlog('pdo pull '.$this->db);
         if (PHP_SAPI != 'cli') {
             $this->pdo = null;
         } else {
 
-            Db::$pool[$this->db]->put($this->pdo);
+            // Db::$pool[$this->db]->put($this->pdo);
         }
     }
 }
