@@ -301,11 +301,12 @@ class App
                 $json = [];
                 if (!$request->files) {
                     if ($tmp = $request->getContent()) {
-                        if (substr($tmp, 0, 1) == '{') {
-                            $json = json_decode($tmp, true);
-                        } else {
+                        if (DATA_CRYPT) {
                             $json = self::crypt($tmp, true);
                         }
+                        if (substr($tmp, 0, 1) == '{') {
+                            $json = json_decode($tmp, true);
+                        } 
                     }
                 }
                 // suc($json);
