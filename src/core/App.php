@@ -358,7 +358,7 @@ class App
 
         if (str_starts_with($uri, '/configer') && APP_ENV == 'dev') {
 
-            $res = [$uri, '\\configer\\Configer', explode('/', $uri)[2] ?? 'index', 0, 0];
+            $res = [$uri, '\\configer\\Configer', explode('/', $uri)[2] ?? 'index', 0, 0,''];
             return $res;
         }
 

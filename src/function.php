@@ -84,6 +84,13 @@ function ti($fn)
     echo '过程耗时:' . (microtime(true) - $s) . '秒' . PHP_EOL;
 }
 
+/**
+ * next todo  继续操作数据
+ * @Author   Wayren
+ * @DateTime 2022-01-05T12:40:27+0800
+ * @param    [type]                   $data [description]
+ * @return   [type]                         [description]
+ */
 function nt($data=null)
 {
     return new \lim\DataHandle($data);

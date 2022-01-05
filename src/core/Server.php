@@ -26,8 +26,8 @@ class Server
             mkdir(ROOT . 'public', true);
         }
 
-        \Swoole\Coroutine::set(['enable_deadlock_check' => null,'hook_flags'=> SWOOLE_HOOK_ALL]);
-        // \Co::set([]); 
+        \Swoole\Coroutine::set(['enable_deadlock_check' => null, 'hook_flags' => SWOOLE_HOOK_ALL]);
+        // \Co::set([]);
         $config = [
 
             'reactor_num'           => 1,
@@ -43,17 +43,24 @@ class Server
             'package_max_length'    => 100 * 1024 * 1024,
             'max_coroutine'         => (int) MAX_COROUTINE,
             'daemonize'             => $daemonize,
-            'document_root'         => ROOT . 'public', 
+            'document_root'         => ROOT . 'public',
             'enable_static_handler' => true,
         ];
 
         self::$server = new \Swoole\WebSocket\Server('0.0.0.0', (int) APP_HW_PORT);
         $app          = new App();
         self::$server->set($config);
-        self::$server->on('start', fn() => cli_set_process_title(APP_NAME . '-master'));
+        self::$server->on('start', fn() => cli_set_process_title(APP_NAME . '-Master'));
         self::$server->on('managerstart', ['\lim\Server', 'managerstart']);
         self::$server->on('WorkerStart', ['\lim\Server', 'WorkerStart']);
-        self::$server->on('WorkerStop', fn() => Timer::clearAll());
+        self::$server->on('WorkerStop', function () {
+            //清理定时任务
+            Timer::clearAll();
+            //清理缓存
+            if (function_exists('opcache_reset')) {
+                opcache_reset();
+            }
+        });
         self::$server->on('BeforeReload', fn() => self::loadTasker());
         self::$server->on('task', ['\lim\App', 'task']);
         self::$server->on('open', [$app, 'open']);
@@ -65,6 +72,7 @@ class Server
 
     public static function managerstart($server)
     {
+        cli_set_process_title(APP_NAME . '-Manager'); 
         self::loadTasker();
     }
 
@@ -72,29 +80,20 @@ class Server
     {
 
         try {
-
             //同步配置文件
             Timer::tick(10 * 1000, fn() => static::$extend = uc('config'));
 
-            //清理缓存
-            if (function_exists('opcache_reset')) {
-                opcache_reset();
-            }
-
             if ($server->taskworker) {
                 $id = $workerId - $server->setting['worker_num'];
-                if ($id == 0) {
 
+                if ($id == 0) {
                     if (method_exists(\app\Hook::class, 'task')) {
                         \app\Hook::task();
                     }
-
-                    cli_set_process_title(APP_NAME . '-boot');
-                } else {
-                    cli_set_process_title(APP_NAME . '-tasker');
-                }
+                }    
+                cli_set_process_title(APP_NAME . '-Tasker');             
             } else {
-                cli_set_process_title(APP_NAME . '-worker');
+                cli_set_process_title(APP_NAME . '-Worker');
             }
         } catch (\Swoole\ExitException $e) {
             wlog($e->getStatus());
