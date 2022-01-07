@@ -80,6 +80,7 @@ class Server
     {
 
         try {
+            // wlog($workerId);
             //同步配置文件
             Timer::tick(10 * 1000, fn() => static::$extend = uc('config'));
 

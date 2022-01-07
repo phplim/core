@@ -87,8 +87,30 @@ class DataHandle
             }
         }
 
-        if ($opt[2]??null) {
+        if ($opt[2] ?? null) {
             $ret = array_values($ret);
         }
+    }
+
+    public function tree($id = 0, &$tree = [])
+    {
+        foreach ($this->data as $key => $v) {
+
+            if ($v['id'] == $id) {
+                unset($this->data[$key]);
+                $tree[$v['id']] = $v;
+                // wlog($v['id'] . ' 1 ' . $v['name'] . ' ' . $id);
+                continue;
+            }
+
+            if (($v['pid'] ?? null) == $id) {
+                unset($this->data[$key]);
+                $tree[$v['pid']]['sub'][$v['id']] = $v;
+                tree($this->data, $v['id'], $tree[$v['pid']]['sub']);
+                continue;
+            }
+        }
+
+        $tree = array_values($tree);
     }
 }
