@@ -91,6 +91,15 @@ class Data
         return $res;
     }
 
+    public static function _get($cols,$data=[],$check=true)
+    {
+        if ($check) {
+            static::check('get', $data);
+        }
+        
+        return Db::use (static::$database)->table(static::$table)->cols($cols,false)->get($data);
+    }
+
     public static function search($data = [], $cols = '*', $msg = '')
     {
         static::check('search', $data);
