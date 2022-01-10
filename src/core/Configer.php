@@ -2,25 +2,29 @@
 declare (strict_types = 1);
 namespace lim;
 
-use function \Swoole\Coroutine\run;
-
-
 class Configer
 {
-    private static $key = [] ,$data = [];
+    private static $key = [], $data = [];
 
     public static function init()
     {
         static::define();
-        self::$data = static::filesToArray('config');
+        // wlog(APP_ENV);
+        $app        = include APP . 'config/app.php';
+        $local      = include APP . 'config/local.php';
+        self::$data = array_merge($app, $local);
+
+        self::$data = array_merge(self::$data, static::filesToArray('config', null, ['app.php', 'local.php', 'app.db']));
+
+        // self::$data['ext'] = include APP.'config/ext.php';
         wlog('配置参数');
         self::$data['model'] = static::filesToArray('config/data');
         wlog('配置模型');
-        self::$data['rule'] = static::filesToArray('config/rule',fn($name,$path)=>static::pareRule($name, include $path));
+        self::$data['rule'] = static::filesToArray('config/rule', fn($name, $path) => static::pareRule($name, include $path));
         wlog('配置规则');
         static::loadDb();
         ksort(self::$data);
-        uc('config',self::$data);
+        uc('config', self::$data);
         wlog('缓存配置');
         Server::$extend = self::$data;
         wlog('同步配置');
@@ -39,7 +43,7 @@ class Configer
         if (!defined('APP_ENV')) {
             define('APP_ENV', is_file(ROOT . '.dev') ? 'dev' : 'pro');
         }
-        
+
         wlog('配置常量');
     }
 
@@ -50,35 +54,35 @@ class Configer
      * @param    [type]                   $key   [description]
      * @param    [type]                   $value [description]
      */
-    public static function set($key,$value)
+    public static function set($key, $value)
     {
-        $arr = explode('.',$key);
-        
-        $n=count($arr);
+        $arr = explode('.', $key);
 
-        $j='';
+        $n = count($arr);
+
+        $j = '';
 
         foreach ($arr as $k) {
-            $j.='{"'.$k.'":';
-        }
-        
-        $j.=json_encode($value);
-        
-        for ($i=0; $i <$n ; $i++) { 
-            $j.='}';
+            $j .= '{"' . $k . '":';
         }
 
-        $seter = json_decode($j,true);
-        $old = uc('config');
-        $new = array_merge($old,$seter);
-        uc('config',$new);
+        $j .= json_encode($value);
+
+        for ($i = 0; $i < $n; $i++) {
+            $j .= '}';
+        }
+
+        $seter = json_decode($j, true);
+        $old   = uc('config');
+        $new   = array_merge($old, $seter);
+        uc('config', $new);
         wlog('配置缓存');
     }
 
     public static function get($key = '')
     {
 
-        if(!Server::$extend){
+        if (!Server::$extend) {
             static::init();
         }
 
@@ -88,19 +92,16 @@ class Configer
             return $c;
         }
 
-        $arr= explode('.', $key);
-
+        $arr = explode('.', $key);
 
         foreach ($arr as $k => $v) {
             if (!isset($c[$v])) {
                 return null;
             }
-            $c  = $c[$v];
+            $c = $c[$v];
         }
 
         return $c;
-
-
 
         // return self::dotSplit($arr,$c);
     }
@@ -113,16 +114,16 @@ class Configer
      * @param    [type]                   $ret [description]
      * @return   [type]                        [description]
      */
-    public static function dotSplit($arr,$ret)
+    public static function dotSplit($arr, $ret)
     {
-        $k  = array_shift($arr);
-      
+        $k = array_shift($arr);
+
         if (!isset($ret[$k])) {
             return null;
         }
 
         if ($arr) {
-            return self::dotSplit($arr,$ret[$k]);
+            return self::dotSplit($arr, $ret[$k]);
         }
 
         return $ret[$k];
@@ -136,7 +137,7 @@ class Configer
      * @param    [type]                   $fn   [description]
      * @return   [type]                         [description]
      */
-    public static function filesToArray($path,$fn=null)
+    public static function filesToArray($path, $fn = null, $remove = [])
     {
         $config = [];
         $dir    = APP . $path;
@@ -150,18 +151,30 @@ class Configer
                 if (is_dir($path)) {
                     continue;
                 }
-                $name          = strstr($file, '.', true);
+
+                list($name, $ext) = explode('.', $file);
+
+                if (in_array($file, $remove)) {
+                    // wlog($file);
+                    continue;
+                }
 
                 //如果存在回调函数就把文件名 和文件路径传给回调函数
-                if($fn){
-                    $config[$name] = $fn($name,$path);
+                if ($fn) {
+                    $config[$name] = $fn($name, $path);
                 } else {
                     $config[$name] = include $path;
+                }
+
+                if (isset(self::$data[$name])) {
+                    unset($config[$name]);
+                    wlog('主配置已存在');
+                    continue;
                 }
             }
             closedir($handle);
         }
-        return $config ;
+        return $config;
     }
 
     /**
@@ -172,10 +185,16 @@ class Configer
      */
     public static function loadDb()
     {
-        $db = self::$data['db']['mysql']['default'];
+        $db = [
+            'type' => 'sqlite',
+            'file' => APP . 'config/app.db',
+        ];
+        // print_r(config('db.config'));
         $pdo = Db::pdo($db);
+
         //加载配置常量
         $ext = $pdo->query("SELECT `key`,`value`,`type` FROM lim_config")->fetchAll();
+
         foreach ($ext as $k => $v) {
 
             if (in_array(substr($v['value'], 0, 1), ['{', '['])) {
@@ -187,7 +206,7 @@ class Configer
             }
 
             if ($v['type'] == 2 && !isset(self::$data[$v['key']])) {
-                self::$data[$v['key']]=$v['value'];
+                self::$data[$v['key']] = $v['value'];
             }
         }
 
@@ -199,11 +218,11 @@ class Configer
         $api = $pdo->query("SELECT * FROM lim_api WHERE status =1 AND top>0 ORDER BY top ASC ,mid ASC ")->fetchAll();
         foreach ($api as $k => $v) {
             $route[strtolower($v['url'])] = [
-                strtolower($v['url']), 
-                $v['class'], 
-                $v['method'], 
-                $v['rule'], 
-                $v['top'] . '.' . $v['mid'], 
+                strtolower($v['url']),
+                $v['class'],
+                $v['method'],
+                $v['rule'],
+                $v['top'] . '.' . $v['mid'],
                 $v['name'],
                 $v['speed'],
             ];
@@ -216,7 +235,7 @@ class Configer
         }
         self::$data['route'] = $route;
         wlog('配置路由');
-        self::$data['role']  = $role;
+        self::$data['role'] = $role;
         wlog('配置角色');
     }
 
@@ -228,21 +247,21 @@ class Configer
 
             //必选规则
             if (isset($v['must'])) {
-                $must = explode(',',$v['must']);
+                $must = explode(',', $v['must']);
             } else {
                 $must = [];
             }
-            
+
             if (isset($v['vars'])) {
-                $vars = $v['vars']=='*'? array_keys($rules['rules']) :explode(',',$v['vars']);
+                $vars = $v['vars'] == '*' ? array_keys($rules['rules']) : explode(',', $v['vars']);
             } else {
                 $vars = [];
             }
-            
+
             $vars = array_unique(array_merge($vars, $must, array_keys($rule))); //合法变量
-           
+
             foreach ($vars as $var) {
-             
+
                 //提取公共规则
                 if (isset($rules['rules'][$var])) {
                     $ruler[$k][$var] = $rules['rules'][$var];
@@ -256,10 +275,10 @@ class Configer
                 //组合必选规则
                 if (in_array($var, $must)) {
                     if (!isset($ruler[$k][$var])) {
-                        wlog($name.' '.$var);
+                        wlog($name . ' ' . $var);
                         exit;
                     }
-                    $ruler[$k][$var] = str_replace('@', '@must|', $ruler[$k][$var] );
+                    $ruler[$k][$var] = str_replace('@', '@must|', $ruler[$k][$var]);
                 }
             }
         }

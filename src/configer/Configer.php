@@ -56,11 +56,11 @@ class Configer
     {
         switch ($this->req->header['action']) {
             case 'update':
-                Db::table('lim_role')->update($this->req->all);
+                Db::use('config')->table('lim_role')->update($this->req->all);
                 suc([]);
                 break;
             case 'select':
-                suc(Db::table('lim_role')->select());
+                suc(Db::use('config')->table('lim_role')->select());
                 break;
             default:
                 // code...
@@ -91,7 +91,7 @@ class Configer
     {
         switch ($this->req->header['action'] ?? null) {
             case 'role':
-                $ret = Db::table('lim_api')->select(['ORDER' => ['top' => 'ASC', 'mid' => 'ASC'], 'status' => 1]);
+                $ret = Db::use('config')->table('lim_api')->select(['ORDER' => ['top' => 'ASC', 'mid' => 'ASC'], 'status' => 1]);
                 foreach ($ret as $k => $v) {
                     if ($v['top'] == '0') {
                         $res[$v['mid']] = ['name' => $v['name'], 'sub' => []];
@@ -102,10 +102,10 @@ class Configer
                 suc($res);
                 break;
             case 'class':
-                suc(Db::table('lim_api')->cols('id,class,name,mid,url,status')->select(['top' => '0']));
+                suc(Db::use('config')->table('lim_api')->cols('id,class,name,mid,url,status')->select(['top' => '0']));
                 break;
             case 'method':
-                $ret = Db::table('lim_api')->select(['ORDER' => ['top' => 'ASC', 'mid' => 'ASC']]);
+                $ret = Db::use('config')->table('lim_api')->select(['ORDER' => ['top' => 'ASC', 'mid' => 'ASC']]);
                 foreach ($ret as $k => $v) {
                     if ($v['top'] == '0') {
                         $tmp[$v['mid']] = $v['name'];
@@ -116,20 +116,20 @@ class Configer
                 suc($res);
                 break;
             case 'delete':
-                Db::table('lim_api')->delete($this->req->all);
+                Db::use('config')->table('lim_api')->delete($this->req->all);
                 suc([], '删除成功');
                 break;
             case 'update':
                 if (isset($this->req->all['sync'])) {
                     unset($this->req->all['sync']);
-                    $top = Db::table('lim_api')->cols('mid')->get(['id' => $this->req->all['id']]);
-                    Db::exec("UPDATE lim_api SET top = {$this->req->all['mid']} WHERE top = {$top}");
+                    $top = Db::use('config')->table('lim_api')->cols('mid')->get(['id' => $this->req->all['id']]);
+                    Db::use('config')->exec("UPDATE lim_api SET top = {$this->req->all['mid']} WHERE top = {$top}");
                 }
-                Db::table('lim_api')->update($this->req->all);
+                Db::use('config')->table('lim_api')->update($this->req->all);
                 suc([], '更新成功');
                 break;
             case 'insert':
-                Db::table('lim_api')->insert($this->req->all);
+                Db::use('config')->table('lim_api')->insert($this->req->all);
                 suc([], '插入成功');
                 break;
         }

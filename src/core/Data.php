@@ -6,7 +6,7 @@ namespace lim;
 class Data
 {
 
-    public static $user = false, $database = APP_ENV, $table = null, $rule = null ,$data=[],$config=[];
+    public static $user = false, $database = 'default', $table = null, $rule = null ,$data=[],$config=[];
 
     public static function init($table='')
     {

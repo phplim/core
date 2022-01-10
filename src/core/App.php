@@ -313,7 +313,7 @@ class App
                 $req->all = array_merge($req->all, $json ?? []);
             }
             $req->files = $request->files;
-
+           
             $ret = (new $class($req))->auth()->check()->before()->$method();
             $response->end($ret);
 

@@ -76,9 +76,26 @@ class Db
 
     public static function pdo($db)
     {
-        $dsn = "mysql:host={$db['host']};dbname={$db['database']};port={$db['port']};charset={$db['charset']}";
-        $opt = [\PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, \PDO::ATTR_ERRMODE => \PDO::ERRMODE_EXCEPTION];
-        return new \PDO($dsn, $db['username'], $db['password'], $opt);
+        switch ($db['type']??null) {
+            case 'sqlite':
+                $dsn = "sqlite:{$db['file']}";
+                break;
+            
+            case 'mysql':
+                $dsn = "mysql:host={$db['host']};dbname={$db['database']};port={$db['port']};charset={$db['charset']}";
+                break;
+        }
+
+        // $dsn = "mysql:host={$db['host']};dbname={$db['database']};port={$db['port']};charset={$db['charset']}";
+        $opt = [
+                \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, //查询模式
+                // \PDO::ATTR_PERSISTENT => true, //长连接
+                \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION, //启用异常模式
+                \PDO::ATTR_STRINGIFY_FETCHES  => false,
+                \PDO::ATTR_EMULATE_PREPARES   => false,
+                \PDO::ATTR_TIMEOUT =>1
+        ];
+        return new \PDO($dsn, $db['username']??null, $db['password']??null, $opt);
     }
 
     public static function __callStatic($method, $args)
@@ -103,18 +120,28 @@ class query
 
     public function init()
     {
+
         // wlog('pdo init '.$this->db);
         try {
             $c   = config('db.mysql')[$this->db];
-            $dsn = "mysql:host={$c['host']};dbname={$c['database']};port={$c['port']};charset={$c['charset']}";
+            switch ($c['type']) {
+                case 'sqlite':
+                    $dsn = "sqlite:{$c['file']}";
+                    break;
+                
+                case 'mysql':
+                    $dsn = "mysql:host={$c['host']};dbname={$c['database']};port={$c['port']};charset={$c['charset']}";
+                    break;
+            }
             $opt = [
                 \PDO::ATTR_DEFAULT_FETCH_MODE => \PDO::FETCH_ASSOC, //查询模式
                 // \PDO::ATTR_PERSISTENT => true, //长连接
                 \PDO::ATTR_ERRMODE            => \PDO::ERRMODE_EXCEPTION, //启用异常模式
                 \PDO::ATTR_STRINGIFY_FETCHES  => false,
                 \PDO::ATTR_EMULATE_PREPARES   => false,
+                \PDO::ATTR_TIMEOUT =>1
             ];
-            return new \PDO($dsn, $c['username'], $c['password'], $opt);
+            return new \PDO($dsn, $c['username']??null, $c['password']??null, $opt);
         } catch (\Throwable $e) {
             wlog($e->getMessage());
             return null;
@@ -466,6 +493,7 @@ class query
             $this->pdo->beginTransaction();
             $st           = $this->pdo->prepare($sql);
             $this->status = $st->execute(array_values($data));
+            $st->closeCursor();
             $this->id     = $this->pdo->lastInsertId();
             $this->pdo->commit();
         } catch (\PDOException $e) {
