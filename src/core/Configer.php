@@ -18,9 +18,10 @@ class Configer
         }
 
         // wlog(APP_ENV);
-        $app        = include_once APP . 'config/app.php';
+        $app        = include APP . 'config/app.php';
 
-        $local      = include_once APP . 'config/local.php';
+        $local      = include APP . 'config/local.php';
+
         self::$data = array_merge($app, $local);
 
         self::$data = array_merge(self::$data, static::filesToArray('config', null, ['app.php', 'local.php', 'app.db']));
@@ -178,7 +179,7 @@ class Configer
                 if ($fn) {
                     $config[$name] = $fn($name, $path);
                 } else {
-                    $config[$name] = include_once $path;
+                    $config[$name] = include $path;
                 }
 
                 if (isset(self::$data[$name])) {

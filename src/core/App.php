@@ -76,7 +76,7 @@ class App
             switch ($code) {
                 case 0:break;
                 case 2:break;
-                case 3:wlog('ping');return;
+                case 3:return;
                 case 40:$server->push((int) $frame->fd, '40{"sid":' . time() . '}');
                     return;
                 case 42:
