@@ -6,8 +6,8 @@ spl_autoload_register('loader');
 use \lim\Configer;
 use \lim\Server;
 
-Configer::init();
-
+// Configer::init();
+Configer::define();
 /**
  * 创建目录
  * @Author   Wayren
@@ -190,7 +190,7 @@ function objRun($obj = '', ...$opt)
     }
 
     $class = '\\' . str_replace('.', '\\', $class);
-
+    // wlog([$class,$opt,$obj[1]]);
     try {
         //判断是否有方法
         if (!$method = $obj[1] ?? null) {
@@ -237,6 +237,6 @@ function db($db = 'db')
     return (new \lim\Db())->use($db);
 }
 
-if (is_file(APP . 'function.php')) {
-    require APP . 'function.php';
-}
+// if (is_file(APP . 'function.php')) {
+//     require APP . 'function.php';
+// }

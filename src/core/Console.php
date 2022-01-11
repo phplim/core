@@ -45,8 +45,9 @@ class Console
 
     public function run($o, $argv)
     {
-
         if (empty($o)) {
+            Configer::define();
+            // print_r(get_included_files());
             if (empty($argv)) {
 
                 echo "Less is More!" . PHP_EOL;
@@ -122,6 +123,8 @@ class Console
         //运行函数
         if ($fn = $o['F'] ?? null) {
             try {
+                Configer::init();
+
                 run(fn() => $fn(...$argv));
             } catch (\Swoole\ExitException $e) {
                 print_r($e);
@@ -131,28 +134,22 @@ class Console
 
         //运行对象
         if ($obj = $o['O'] ?? null) {
+            Configer::init();
             run(fn() => objRun($o['O'], ...$argv));
         }
 
         //操作服务
         if (isset($o['S'])) {
+            
+
+       
             switch ($o['S']) {
                 case 'run':
-
-                    if (isset($o['d'])) {
-                        \lim\Server::run(true);
-                    } else {
-                        Server::run();
-                        return;
-                    }
+                    Server::run(isset($o['d'])?true:false);
                     break;
                 case 'stop':
                 case 'reload':
                     //清理缓存
-                    if (function_exists('opcache_reset')) {
-                        opcache_reset();
-                        // wlog('opcache清理');
-                    }
                     run(function () use ($o) {
                         \swoole\timer::clearAll();
                         $pid = file_get_contents('/var/log/' . APP_NAME . '.pid');
@@ -160,12 +157,14 @@ class Console
                         $n   = [15 => '停止', 10 => '重启'];
                         $ret = \co::exec('kill -' . $num . ' ' . $pid);
                         if ($ret['code'] === 0) {
-                            echo "服务" . $n[$num] . "成功\n";
+                            wlog("服务" . $n[$num] . "成功");
                         }
                     });
                     break;
             }
         }
+        // print_r(get_defined_constants(true)['user']);
+        // print_r(get_included_files());
 
     }
 }

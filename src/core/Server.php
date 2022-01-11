@@ -53,15 +53,8 @@ class Server
         self::$server->on('start', fn() => cli_set_process_title(APP_NAME . '-Master'));
         self::$server->on('managerstart', ['\lim\Server', 'managerstart']);
         self::$server->on('WorkerStart', ['\lim\Server', 'WorkerStart']);
-        self::$server->on('WorkerStop', function () {
-            //清理定时任务
-            Timer::clearAll();
-            //清理缓存
-            if (function_exists('opcache_reset')) {
-                opcache_reset();
-            }
-        });
-        self::$server->on('BeforeReload', fn() => self::loadTasker());
+        // self::$server->on('WorkerStop', fn() => '');
+        self::$server->on('AfterReload', fn() => self::loadTasker());
         self::$server->on('task', ['\lim\App', 'task']);
         self::$server->on('open', [$app, 'open']);
         self::$server->on('message', [$app, 'message']);
@@ -72,17 +65,29 @@ class Server
 
     public static function managerstart($server)
     {
-        cli_set_process_title(APP_NAME . '-Manager'); 
+        cli_set_process_title(APP_NAME . '-Manager');
         self::loadTasker();
+        // self::loadTasker();
+        wlog("服务启动成功");
     }
 
     public static function WorkerStart($server, int $workerId)
     {
 
         try {
-            // wlog($workerId);
+
+            Timer::clearAll();
+            if (function_exists('opcache_reset')) {
+                opcache_reset();
+            }
+
+            Configer::init();
+            
+            static::$extend = uc('config');
+            // wlog('缓存配置');
+
             //同步配置文件
-            Timer::tick(10 * 1000, fn() => static::$extend = uc('config'));
+            // Timer::tick(10 * 1000, fn() => static::$extend = uc('config'));
 
             if ($server->taskworker) {
                 $id = $workerId - $server->setting['worker_num'];
@@ -91,8 +96,11 @@ class Server
                     if (method_exists(\app\Hook::class, 'task')) {
                         \app\Hook::task();
                     }
-                }    
-                cli_set_process_title(APP_NAME . '-Tasker');             
+
+                    // print_r(get_defined_constants(true)['user']);
+                    // print_r(get_included_files());
+                }
+                cli_set_process_title(APP_NAME . '-Tasker');
             } else {
                 cli_set_process_title(APP_NAME . '-Worker');
             }
@@ -104,11 +112,10 @@ class Server
 
     private static function loadTasker()
     {
-        if (APP_ENV == 'dev') {
-            return;
-        }
 
         Timer::clearAll();
+        sleep(2);
+        wlog('加载定时任务');
         //时间,延迟,天,周
         if ($tasker = config('task')) {
             foreach ($tasker as $k => $v) {

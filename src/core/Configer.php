@@ -8,10 +8,19 @@ class Configer
 
     public static function init()
     {
+        uc()->delete('config');
+        self::$data = [];
+
         static::define();
+
+        if (is_file(APP . 'function.php')) {
+            require_once APP . 'function.php';
+        }
+
         // wlog(APP_ENV);
-        $app        = include APP . 'config/app.php';
-        $local      = include APP . 'config/local.php';
+        $app        = include_once APP . 'config/app.php';
+
+        $local      = include_once APP . 'config/local.php';
         self::$data = array_merge($app, $local);
 
         self::$data = array_merge(self::$data, static::filesToArray('config', null, ['app.php', 'local.php', 'app.db']));
@@ -25,9 +34,10 @@ class Configer
         static::loadDb();
         ksort(self::$data);
         uc('config', self::$data);
-        wlog('缓存配置');
-        Server::$extend = self::$data;
+        // print_r(uc('config')['auth']);
+        // Server::$extend = self::$data;
         wlog('同步配置');
+
     }
 
     public static function define()
@@ -44,6 +54,15 @@ class Configer
             define('APP_ENV', is_file(ROOT . '.dev') ? 'dev' : 'pro');
         }
 
+        $f = ROOT . 'app.ini';
+        if (is_file($f)) {
+            $app = parse_ini_file(ROOT . 'app.ini', true);
+            foreach ($app as $k => $v) {
+                if (!defined($k)) {
+                    define($k, $v);
+                }
+            }
+        }
         wlog('配置常量');
     }
 
@@ -82,11 +101,7 @@ class Configer
     public static function get($key = '')
     {
 
-        if (!Server::$extend) {
-            static::init();
-        }
-
-        $c = Server::$extend;
+        $c = !Server::$extend ? uc('config') : Server::$extend;
 
         if (!$key) {
             return $c;
@@ -163,12 +178,12 @@ class Configer
                 if ($fn) {
                     $config[$name] = $fn($name, $path);
                 } else {
-                    $config[$name] = include $path;
+                    $config[$name] = include_once $path;
                 }
 
                 if (isset(self::$data[$name])) {
                     unset($config[$name]);
-                    wlog('主配置已存在');
+                    // wlog('主配置已存在');
                     continue;
                 }
             }
