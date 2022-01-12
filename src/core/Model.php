@@ -8,21 +8,27 @@ class Model
 
     public function __construct($data = [])
     {
+
         if ($data) {
-            static::$data = $data;
+            $this->data = $data;
         }
+    }
+
+    public function __call($method, $args)
+    {
+        // print_r([$method, $args]);
     }
 
     public static function __callStatic($method, $args)
     {
 
         try {
-            if (!Server::$server) {
-                Configer::init();
-                wlog('model init');
-            } 
-            static::$config = config($method) ?? [];
-            $class = '\\app\\data\\' . $method;
+
+            // print_r([$method,$args]);
+            // return;
+            // static::$config = config($method) ?? [];
+            $class = '\\app\\model\\' . $method;
+
             return new $class(array_shift($args));
         } catch (Throwable $e) {
             print_r($e);
@@ -32,7 +38,7 @@ class Model
     public static function table($table = '')
     {
         static::$table = $table;
-        return self::class;
+        return static::class;
     }
 
     public static function check($method, &$data)
@@ -97,14 +103,16 @@ class Model
         return $res;
     }
 
-    public static function search($data = [], $cols = '*', $msg = '')
+    public static function search($where = [], $cols = '*')
     {
-        static::check('search', $data);
-        $res = Db::use (static::$database)->table(static::$table)->cols($cols)->select($data);
-        if ($msg) {
-            suc($res, $msg . '成功');
-        }
-        return $res;
+  
+        static::check('search', $where);
+
+        $res = Db::use (static::$database)->table(static::$table)->cols($cols)->select($where);
+       
+        $class = get_called_class();
+
+        return new $class($res);
     }
 
     public static function cols($cols = '*', $pear = true)
@@ -156,3 +164,4 @@ class Model
         return $data;
     }
 }
+

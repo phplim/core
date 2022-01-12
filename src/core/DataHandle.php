@@ -58,6 +58,44 @@ class DataHandle
         }
     }
 
+    public function replace($replace = [])
+    {
+        if (!$replace) {
+            return $this;
+        }
+
+        foreach ($this->data as $k => $v) {
+            foreach ($replace as $key => $value) {
+                if (isset($v[$key])) {
+                    $v[$key] = $value[$v[$key]];
+                }
+            }
+            $this->data[$k] = $v;
+        }
+
+        return $this;
+    }
+
+    public function append($append = [])
+    {
+        if (!$append) {
+            return $this;
+        }
+
+        foreach ($this->data as $k => $v) {
+
+            foreach ($append as $key => $value) {
+                if (isset($v[$key])) {
+                    $v[key($value)] = end($value)[$v[$key]];
+                }
+            }
+
+            $this->data[$k] = $v;
+        }
+
+        return $this;
+    }
+
     /**
      * 获取子数据
      * @Author   Wayren

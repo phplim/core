@@ -26,18 +26,17 @@ class Configer
 
         self::$data = array_merge(self::$data, static::filesToArray('config', null, ['app.php', 'local.php', 'app.db']));
 
-        // self::$data['ext'] = include APP.'config/ext.php';
-        wlog('配置参数');
-        self::$data['model'] = static::filesToArray('config/data');
-        wlog('配置模型');
+        // wlog('配置参数');
+        self::$data['model'] = static::filesToArray('config/model');
+        // wlog('配置模型');
         self::$data['rule'] = static::filesToArray('config/rule', fn($name, $path) => static::pareRule($name, include $path));
-        wlog('配置规则');
+        // wlog('配置规则');
         static::loadDb();
         ksort(self::$data);
         uc('config', self::$data);
         // print_r(uc('config')['auth']);
         // Server::$extend = self::$data;
-        wlog('同步配置');
+        // wlog('同步配置');
 
     }
 
@@ -64,7 +63,7 @@ class Configer
                 }
             }
         }
-        wlog('配置常量');
+        // wlog('配置常量');
     }
 
     /**
@@ -250,9 +249,9 @@ class Configer
             $role[$v['id']] = json_decode($v['auth'], true);
         }
         self::$data['route'] = $route;
-        wlog('配置路由');
+        // wlog('配置路由');
         self::$data['role'] = $role;
-        wlog('配置角色');
+        // wlog('配置角色');
     }
 
     private static function pareRule($name, $rules)
