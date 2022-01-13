@@ -64,10 +64,7 @@ class Server
         $tcp = self::$server->listen("0.0.0.0", APP_HW_PORT - 1, SWOOLE_SOCK_TCP);
         $tcp->set([]);
         $tcp->on('receive', function ($server, $fd, $reactor_id, $data) {
-            //仅遍历 9514 端口的连接，因为是用的$server，不是$tcp
-            print_r([$fd,$reactor_id]);
-            print_r(json_decode($data));
-
+       
             $server->send($fd, $data);
         });
 
