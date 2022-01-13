@@ -9,6 +9,12 @@ class DataHandle
 
     }
 
+    public function where($where=[])
+    {
+        $this->where = $where ;
+        return $this;
+    }
+
     /**
      * 转化成KV数据 如果value 包含,则说明是多value
      * @Author   Wayren
@@ -41,6 +47,15 @@ class DataHandle
         $cols = explode(',', $cols);
         $res  = array_diff(array_keys(array_shift($this->data)), $cols);
         foreach ($this->data as $k => $v) {
+
+            if (isset($this->where)) {
+                foreach ($this->where as $key => $value) {
+                    if ($v[$key]!=$value) {
+                        continue 2;
+                    }
+                }
+            } 
+
             foreach ($res as $key) {
                 unset($v[$key]);
             }
@@ -108,8 +123,7 @@ class DataHandle
      */
     public function sub($where, $data, &$ret = [], $opt = [])
     {
-        // $opt = array_merge(['pid','id',false],$opt);
-
+ 
         foreach ($this->data as $k => $v) {
 
             if ($where($v)) {
