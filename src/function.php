@@ -48,7 +48,7 @@ function lim_mkdir($dirs='',$base='')
 function uc($k=null, $v = false, $t = 0)
 {
     if (!Server::$cache) {
-        Server::$cache = new \Yac();
+        Server::$cache = new \Yac(APP_NAME);
         wlog('初始化Yac');
     }
 

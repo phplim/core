@@ -12,8 +12,8 @@ class Server
     public static function run($daemonize = false)
     {
         if (!static::$cache) {
-            static::$cache = new \Yac();
-            wlog('sr初始化Yac');
+            static::$cache = new \Yac(APP_NAME);
+            wlog('初始化Yac');
         }
 
         static::$io = new \stdClass;
@@ -40,7 +40,7 @@ class Server
             'hook_flags'            => SWOOLE_HOOK_ALL,
             'max_wait_time'         => 1,
             'reload_async'          => true,
-            'package_max_length'    => 100 * 1024 * 1024,
+            'package_max_length'    => 5 * 1024 * 1024,
             'max_coroutine'         => (int) MAX_COROUTINE,
             'daemonize'             => $daemonize,
             'document_root'         => ROOT . 'public',
@@ -60,6 +60,17 @@ class Server
         self::$server->on('message', [$app, 'message']);
         self::$server->on('close', fn() => '');
         self::$server->on('request', [$app, 'request']);
+
+        $tcp = self::$server->listen("0.0.0.0", APP_HW_PORT - 1, SWOOLE_SOCK_TCP);
+        $tcp->set([]);
+        $tcp->on('receive', function ($server, $fd, $reactor_id, $data) {
+            //仅遍历 9514 端口的连接，因为是用的$server，不是$tcp
+            print_r([$fd,$reactor_id]);
+            print_r(json_decode($data));
+
+            $server->send($fd, $data);
+        });
+
         self::$server->start();
     }
 
@@ -82,7 +93,7 @@ class Server
             }
 
             Configer::init();
-            
+
             static::$extend = uc('config');
             // wlog('缓存配置');
 

@@ -9,9 +9,9 @@ class DataHandle
 
     }
 
-    public function where($where=[])
+    public function where($where = [])
     {
-        $this->where = $where ;
+        $this->where = $where;
         return $this;
     }
 
@@ -50,11 +50,11 @@ class DataHandle
 
             if (isset($this->where)) {
                 foreach ($this->where as $key => $value) {
-                    if ($v[$key]!=$value) {
+                    if ($v[$key] != $value) {
                         continue 2;
                     }
                 }
-            } 
+            }
 
             foreach ($res as $key) {
                 unset($v[$key]);
@@ -123,7 +123,7 @@ class DataHandle
      */
     public function sub($where, $data, &$ret = [], $opt = [])
     {
- 
+
         foreach ($this->data as $k => $v) {
 
             if ($where($v)) {
@@ -140,7 +140,7 @@ class DataHandle
         }
 
         if ($opt[2] ?? null) {
-            $ret = array_values($ret);
+            $ret = array_values($ret??[]);
         }
     }
 
