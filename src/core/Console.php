@@ -132,6 +132,14 @@ class Console
                         $res = lim_tcp($host.':'.(APP_HW_PORT-1),['token'=>APP::token(),'action'=>$action]);
                         wlog($res);
                         break;
+                    case 'push':
+                        if (!$mark = array_shift($argv)) {
+                            $mark = date('m-d');
+                        }
+                        $script=" git add . && git commit -m '".$mark."' && git push;";
+                        wlog(shell_exec($script));
+                        wlog('推送代码成功');
+                        break;
                     default:
                         echo 'aaa';
                         break;
