@@ -60,10 +60,10 @@ class Console
                 }
 
 
-                if (!is_file(ROOT . 'app/config/db.php')) {
-                    copy(ROOT . 'vendor/phplim/core/src/source/db.php', ROOT . 'app/config/db.php');
-                    wlog('create app/config/db.php');
-                }
+                // if (!is_file(ROOT . 'app/config/db.php')) {
+                //     copy(ROOT . 'vendor/phplim/core/src/source/db.php', ROOT . 'app/config/db.php');
+                //     wlog('create app/config/db.php');
+                // }
 
                 if (!is_file(ROOT . 'app/config/rule/demo.php')) {
                     copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/config/rule/demo.php');
@@ -80,10 +80,10 @@ class Console
                     wlog('create app/Hook.php');
                 }
 
-                if (!is_file(ROOT . 'install.sql')) {
-                    copy(ROOT . 'vendor/phplim/core/src/source/install.sql', ROOT . 'install.sql');
-                    wlog('create install.sql');
-                }
+                // if (!is_file(ROOT . 'install.sql')) {
+                //     copy(ROOT . 'vendor/phplim/core/src/source/install.sql', ROOT . 'install.sql');
+                //     wlog('create install.sql');
+                // }
 
                 if (!is_file(ROOT . 'public/index.php')) {
                     copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
@@ -112,6 +112,25 @@ class Console
                         shell_exec('rm -rf ' . ROOT . 'lim');
                         shell_exec('rm -rf ' . ROOT . '.dev');
                         echo 'clear' . PHP_EOL;
+                        break;
+                    case 'server':
+                        
+                        if (!defined('SYNC_HOST')) {
+                            wlog('非本地环境');
+                            return;
+                        }
+
+                        if (!$host = SYNC_HOST[array_shift($argv)]??null) {
+                            wlog('目标环境未配置');
+                            return;
+                        }
+
+                        if (!$action = array_shift($argv)) {
+                            wlog('缺少动作');
+                            return;
+                        }
+                        $res = lim_tcp($host.':'.(APP_HW_PORT-1),['token'=>APP::token(),'action'=>$action]);
+                        wlog($res);
                         break;
                     default:
                         echo 'aaa';

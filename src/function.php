@@ -36,6 +36,31 @@ function lim_mkdir($dirs='',$base='')
 
 }
 
+
+function lim_tcp($host,$data)
+{
+    list($ip,$port) = explode(':',$host);
+    $st=json_encode($data);
+    $length = strlen($st);
+    //创建tcp套接字
+    $socket = socket_create(AF_INET,SOCK_STREAM,SOL_TCP);
+    //连接tcp
+    try {
+        socket_connect($socket, $ip,(int)$port);
+    } catch (\Throwable $e) {
+        print_r($e);
+    }
+    
+    //向打开的套集字写入数据（发送数据）
+    $s = socket_write($socket, $st, $length);
+    //从套接字中获取服务器发送来的数据
+    $msg = socket_read($socket,2097152);
+    //关闭连接
+    socket_close($socket);
+    return json_decode($msg,true);
+}
+
+
 /**
  * 缓存方法
  * @Author   Wayren

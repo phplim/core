@@ -18,9 +18,9 @@ class Configer
         }
 
         // wlog(APP_ENV);
-        $app        = include APP . 'config/app.php';
+        $app = include APP . 'config/app.php';
 
-        $local      = include APP . 'config/local.php';
+        $local = include APP . 'config/local.php';
 
         self::$data = array_merge($app, $local);
 
@@ -50,13 +50,23 @@ class Configer
             define('APP', ROOT . 'app/');
         }
 
-        if (!defined('APP_ENV')) {
-            define('APP_ENV', is_file(ROOT . '.dev') ? 'dev' : 'pro');
+        $f = ROOT.'.env';
+
+        if (is_file($f)) {
+            $env = parse_ini_file($f, true);
+            foreach ($env as $k => $v) {
+                if (!defined($k)) {
+                    define($k, $v);
+                }
+            }
+        } else {
+            define('APP_ENV','pro');
+            define('DATA_CRYPT', 0);
         }
 
-        $f = ROOT . 'app.ini';
+        $f = ROOT . 'app.const';
         if (is_file($f)) {
-            $app = parse_ini_file(ROOT . 'app.ini', true);
+            $app = parse_ini_file($f, true);
             foreach ($app as $k => $v) {
                 if (!defined($k)) {
                     define($k, $v);

@@ -64,8 +64,38 @@ class Server
         $tcp = self::$server->listen("0.0.0.0", APP_HW_PORT - 1, SWOOLE_SOCK_TCP);
         $tcp->set([]);
         $tcp->on('receive', function ($server, $fd, $reactor_id, $data) {
-       
-            $server->send($fd, $data);
+            if (!$res = json_decode((string)$data,true)) {
+                wlog('tcp请求非法');
+                return;
+            }
+
+            if (!isset($res['token']) || !App::token($res['token'],true)) {
+                wlog('token非法');
+                return;
+            }
+
+            if (!$action = $res['action'] ?? null) {
+                wlog('tcp无动作');
+                return;
+            }
+
+            switch ($action) {
+                case 'sync':
+                    $script = "cd ".ROOT." && git pull --no-rebase;";
+                    $e=shell_exec($script);
+                    $server->reload();
+                    wlog($e);
+                    $server->send($fd, json_encode(['code'=>1,'message'=>'代码更新且服务重启成功'],256));
+                    break;
+                case 'reload':
+                    $server->reload();
+                    $server->send($fd, json_encode(['code'=>1,'message'=>'服务重启成功'],256));
+                    break;
+                default:
+                    wlog('未知任务');
+                    $server->send($fd, json_encode(['code'=>0,'message'=>'未知任务'],256));
+                    break;
+            }
         });
 
         self::$server->start();
