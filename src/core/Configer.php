@@ -50,7 +50,7 @@ class Configer
             define('APP', ROOT . 'app/');
         }
 
-        $f = ROOT.'.env';
+        $f = ROOT . '.env';
 
         if (is_file($f)) {
             $env = parse_ini_file($f, true);
@@ -60,8 +60,14 @@ class Configer
                 }
             }
         } else {
-            define('APP_ENV','pro');
-            define('DATA_CRYPT', 0);
+            if (!defined('APP_ENV')) {
+                define('APP_ENV', 'pro');
+            }
+
+            if (!defined('DATA_CRYPT')) {
+                define('DATA_CRYPT', 0);
+            }
+            
         }
 
         $f = ROOT . 'app.const';
