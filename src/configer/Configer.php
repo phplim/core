@@ -117,6 +117,7 @@ class Configer
                 break;
             case 'delete':
                 Db::use('config')->table('lim_api')->delete($this->req->all);
+                $this->sync();
                 suc([], '删除成功');
                 break;
             case 'update':
@@ -126,14 +127,25 @@ class Configer
                     Db::use('config')->exec("UPDATE lim_api SET top = {$this->req->all['mid']} WHERE top = {$top}");
                 }
                 Db::use('config')->table('lim_api')->update($this->req->all);
+                $this->sync();
                 suc([], '更新成功');
                 break;
             case 'insert':
                 Db::use('config')->table('lim_api')->insert($this->req->all);
+                $this->sync();
                 suc([], '插入成功');
                 break;
         }
 
         $this->html('api');
+    }
+
+    public function sync()
+    {
+        if (is_file('/temp/oms/app.db')) {
+            copy('/temp/oms/app.db', APP.'config/app.db');
+        }
+        
+        // wlog('copy');
     }
 }
