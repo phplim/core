@@ -119,6 +119,7 @@ class Server
                 opcache_reset();
             }
             self::$cache->flush();
+            
             Configer::init();
 
             static::$extend = uc('config');

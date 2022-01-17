@@ -12,6 +12,39 @@ class Console
     function __construct($argv)
     {
 
+        // array_shift($argv);
+
+        // if (!$action = array_shift($argv)) {
+        //     wlog('没有可用命令');
+        //     return;
+        // }
+
+        // try {
+
+        //     switch ($action) {
+        //         case 'fn':
+        //             Configer::init();
+        //             $fn = array_shift($argv);
+        //             run(fn() => $fn(...$argv));
+        //             break;
+        //         case 'obj':
+        //             // code...
+        //             break;
+        //         default:
+        //             // code...
+        //             break;
+        //     }
+
+            
+
+            
+
+        // } catch (\Swoole\ExitException $e) {
+        //     print_r($e);
+        // }
+
+        // return;
+
         /**
          *
          * S: websocket服务
@@ -52,18 +85,12 @@ class Console
 
                 echo "Less is More!" . PHP_EOL;
 
-                lim_mkdir('logs,app,app/api,app/task,app/config,app/config/rule,public',ROOT);
+                lim_mkdir('logs,app,app/api,app/task,app/config,app/config/rule,public', ROOT);
 
                 if (!is_file(ROOT . 'app/api/Api.php')) {
                     copy(ROOT . 'vendor/phplim/core/src/source/Api.php', ROOT . 'app/api/Api.php');
                     wlog('create app/api/Api.php');
                 }
-
-
-                // if (!is_file(ROOT . 'app/config/db.php')) {
-                //     copy(ROOT . 'vendor/phplim/core/src/source/db.php', ROOT . 'app/config/db.php');
-                //     wlog('create app/config/db.php');
-                // }
 
                 if (!is_file(ROOT . 'app/config/rule/demo.php')) {
                     copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/config/rule/demo.php');
@@ -100,7 +127,7 @@ class Console
                 $act = array_shift($argv);
                 switch ($act) {
                     case 'build':
-                        $sync = 'cp -r ' . dirname(__DIR__) . ' /code/php/core/ && cd /code/php/core/ && git add . && git commit -m \''.time().'\' && git push';
+                        $sync = 'cp -r ' . dirname(__DIR__) . ' /code/php/core/ && cd /code/php/core/ && git add . && git commit -m \'' . time() . '\' && git push';
                         shell_exec($sync);
                         wlog('composer sync');
                         break;
@@ -114,13 +141,13 @@ class Console
                         echo 'clear' . PHP_EOL;
                         break;
                     case 'server':
-                        
+
                         if (!defined('SYNC_HOST')) {
                             wlog('非本地环境');
                             return;
                         }
 
-                        if (!$host = SYNC_HOST[array_shift($argv)]??null) {
+                        if (!$host = SYNC_HOST[array_shift($argv)] ?? null) {
                             wlog('目标环境未配置');
                             return;
                         }
@@ -129,14 +156,14 @@ class Console
                             wlog('缺少动作');
                             return;
                         }
-                        $res = lim_tcp($host.':'.(APP_HW_PORT-1),['token'=>APP::token(),'action'=>$action]);
+                        $res = lim_tcp($host . ':' . (APP_HW_PORT - 1), ['token' => APP::token(), 'action' => $action]);
                         wlog($res);
                         break;
                     case 'push':
                         if (!$mark = array_shift($argv)) {
                             $mark = date('m-d');
                         }
-                        $script=" git add . && git commit -m '".$mark."' && git push;";
+                        $script = " git add . && git commit -m '" . $mark . "' && git push;";
                         wlog(shell_exec($script));
                         wlog('推送代码成功');
                         break;
@@ -167,12 +194,10 @@ class Console
 
         //操作服务
         if (isset($o['S'])) {
-            
 
-       
             switch ($o['S']) {
                 case 'run':
-                    Server::run(isset($o['d'])?true:false);
+                    Server::run(isset($o['d']) ? true : false);
                     break;
                 case 'stop':
                 case 'reload':
