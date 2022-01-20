@@ -91,7 +91,7 @@ class Server
                     $server->reload();
                     $server->send($fd, json_encode(['code' => 1, 'message' => '服务重启成功'], 256));
                     break;
-                case 'logs':
+                case 'clear':
                     $d   = date('Y-m');
                     $dir = ROOT . 'logs/';
                     if ($handle = opendir($dir)) {
@@ -106,7 +106,6 @@ class Server
                                     mkdir($path, 0777, true);
                                 }
                                 rename($dir . $file, $path . $file);
-                                // wlog($file);
                             }
                         }
                         closedir($handle);
