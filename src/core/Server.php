@@ -65,17 +65,17 @@ class Server
         $tcp->set([]);
         $tcp->on('receive', function ($server, $fd, $reactor_id, $data) {
             if (!$res = json_decode((string)$data,true)) {
-                wlog('tcp请求非法');
+                // wlog('tcp请求非法');
                 return;
             }
 
             if (!isset($res['token']) || !App::token($res['token'],true)) {
-                wlog('token非法');
+                // wlog('token非法');
                 return;
             }
 
             if (!$action = $res['action'] ?? null) {
-                wlog('tcp无动作');
+                // wlog('tcp无动作');
                 return;
             }
 
@@ -84,7 +84,7 @@ class Server
                     $script = "cd ".ROOT." && git pull --no-rebase;";
                     $e=shell_exec($script);
                     $server->reload();
-                    wlog($e);
+                    // wlog($e);
                     $server->send($fd, json_encode(['code'=>1,'message'=>'代码更新且服务重启成功'],256));
                     break;
                 case 'reload':
@@ -92,7 +92,7 @@ class Server
                     $server->send($fd, json_encode(['code'=>1,'message'=>'服务重启成功'],256));
                     break;
                 default:
-                    wlog('未知任务');
+                    // wlog('未知任务');
                     $server->send($fd, json_encode(['code'=>0,'message'=>'未知任务'],256));
                     break;
             }
