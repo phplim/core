@@ -64,12 +64,12 @@ class Server
         $tcp = self::$server->listen("0.0.0.0", APP_HW_PORT - 1, SWOOLE_SOCK_TCP);
         $tcp->set([]);
         $tcp->on('receive', function ($server, $fd, $reactor_id, $data) {
-            if (!$res = json_decode((string)$data,true)) {
+            if (!$res = json_decode((string) $data, true)) {
                 // wlog('tcp请求非法');
                 return;
             }
 
-            if (!isset($res['token']) || !App::token($res['token'],true)) {
+            if (!isset($res['token']) || !App::token($res['token'], true)) {
                 // wlog('token非法');
                 return;
             }
@@ -81,19 +81,41 @@ class Server
 
             switch ($action) {
                 case 'sync':
-                    $script = "cd ".ROOT." && git pull --no-rebase;";
-                    $e=shell_exec($script);
+                    $script = "cd " . ROOT . " && git pull --no-rebase;";
+                    $e      = shell_exec($script);
                     $server->reload();
                     // wlog($e);
-                    $server->send($fd, json_encode(['code'=>1,'message'=>'代码更新且服务重启成功'],256));
+                    $server->send($fd, json_encode(['code' => 1, 'message' => '代码更新且服务重启成功'], 256));
                     break;
                 case 'reload':
                     $server->reload();
-                    $server->send($fd, json_encode(['code'=>1,'message'=>'服务重启成功'],256));
+                    $server->send($fd, json_encode(['code' => 1, 'message' => '服务重启成功'], 256));
+                    break;
+                case 'logs':
+                    $d   = date('Y-m');
+                    $dir = ROOT . 'logs/';
+                    if ($handle = opendir($dir)) {
+                        while (($file = readdir($handle)) !== false) {
+                            if (($file == ".") || ($file == "..") || is_dir($dir . $file)) {
+                                continue;
+                            }
+
+                            if (!str_starts_with($file, $d)) {
+                                $path = $dir . 'data/bak/' . substr($file, 0, 7) . '/';
+                                if (!is_dir($path)) {
+                                    mkdir($path, 0777, true);
+                                }
+                                rename($dir . $file, $path . $file);
+                                // wlog($file);
+                            }
+                        }
+                        closedir($handle);
+                    }
+                    $server->send($fd, json_encode(['code' => 0, 'message' => '整理日志成功'], 256));
                     break;
                 default:
                     // wlog('未知任务');
-                    $server->send($fd, json_encode(['code'=>0,'message'=>'未知任务'],256));
+                    $server->send($fd, json_encode(['code' => 0, 'message' => '未知任务'], 256));
                     break;
             }
         });
@@ -119,7 +141,7 @@ class Server
                 opcache_reset();
             }
             self::$cache->flush();
-            
+
             Configer::init();
 
             static::$extend = uc('config');
