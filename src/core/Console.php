@@ -182,7 +182,7 @@ class Console
         if ($fn = $o['F'] ?? null) {
             try {
                 Configer::init();
-                print_r(get_included_files());
+                // print_r(get_included_files());
                 run(fn() => $fn(...$argv));
             } catch (\Swoole\ExitException $e) {
                 print_r($e);

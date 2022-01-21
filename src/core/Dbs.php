@@ -262,6 +262,13 @@ class dbsQuery
 
     }
 
+    public function jsonArrayAppend($key='',$value='')
+    {
+        $this->sets[] = "{$key} = JSON_ARRAY_APPEND({$key}, '$',$value) ";
+        $this->where[]= "!JSON_CONTAINS({$key}, '{$value}')";
+        return $this;
+    }
+
     public function update($data = [], $whereKeys = '')
     {
         $this->action = 'update';
