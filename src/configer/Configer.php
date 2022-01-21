@@ -145,7 +145,7 @@ class Configer
         if (is_file('/temp/oms/app.db')) {
             copy('/temp/oms/app.db', APP.'config/app.db');
         }
-        
-        // wlog('copy');
+
+        \lim\Server::reload();
     }
 }

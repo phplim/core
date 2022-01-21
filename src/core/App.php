@@ -6,7 +6,7 @@ use \swoole\Timer;
 
 class App
 {
-    public static $cache = null, $config = [], $request = null,$ext = null;
+    public static $cache = null, $config = [], $request = null, $ext = null;
 
     private $req = null;
     /**
@@ -54,11 +54,10 @@ class App
     {
         try {
 
-            if ($frame->data=='ping') {
+            if ($frame->data == 'ping') {
                 return;
             }
 
-            
             //大括号的位置大于0小于3的时候 说明是 socket.io 请求的具体数据
             $index = strpos($frame->data, '[');
             if ($index <= 2 && $index > 0) {
@@ -69,9 +68,8 @@ class App
                 $data = '';
             }
 
-
-            $req         = new \StdClass();
-            $req->header = static::$request->header??[];
+            $req           = new \StdClass();
+            $req->header   = static::$request->header ?? [];
             $req->socketio = 1;
             switch ($code) {
                 case 0:break;
@@ -82,21 +80,20 @@ class App
                 case 42:
                     $info = array_shift($data);
 
-                    
-                    if (!$url = $info['action']??null) {
+                    if (!$url = $info['action'] ?? null) {
                         err('action必填');
                     }
 
-                    $req->header['token'] =  $info['token'] ?? '';
-                    $req->all    = $info['data']??[];
-                    $req->receive = $info['receive']??null;
-                    
-                    list($path, $class, $method, $rule, $auth,$name) = App::parseUri($url);
-                    
-                    $req->receive ??= $method;
+                    $req->header['token'] = $info['token'] ?? '';
+                    $req->all             = $info['data'] ?? [];
+                    $req->receive         = $info['receive'] ?? null;
+
+                    list($path, $class, $method, $rule, $auth, $name) = App::parseUri($url);
+
+                    $req->receive??=$method;
                     $req->class  = $class;
                     $req->method = $method;
-                    $req->name = $name;
+                    $req->name   = $name;
                     $req->auth   = $auth;
                     $req->path   = $path;
                     $req->rule   = $rule;
@@ -104,23 +101,23 @@ class App
                     break;
                 default:
                     $req->socketio = 0;
-                   
-                    $info = json_decode($code, true)??null;
-                  
+
+                    $info = json_decode($code, true) ?? null;
+
                     if (!$info) {
                         err('非法请求');
                         return;
                     }
 
-                    list($path, $class, $method, $rule, $auth,$name) = App::parseUri($info['action']);
-                    
+                    list($path, $class, $method, $rule, $auth, $name) = App::parseUri($info['action']);
+
                     $req->header['token'] = $info['token'] ?? '';
-                    $req->receive ??= $method;
-                    $req->all    = $info['data'];
-                    
+                    $req->receive??=$method;
+                    $req->all = $info['data'];
+
                     $req->class  = $class;
                     $req->method = $method;
-                     $req->name = $name;
+                    $req->name   = $name;
                     $req->auth   = $auth;
                     $req->path   = $path;
                     $req->rule   = $rule;
@@ -129,25 +126,23 @@ class App
                     break;
             }
 
-            
             (new $class($req))->auth()->check()->before()->$method();
 
         } catch (\Swoole\ExitException $e) {
 
             $data = json_decode($e->getStatus(), true);
-          
-         
+
             if ($req->socketio) {
-                if ((int)$data['code']!=1) {
-                    $server->push((int) $frame->fd, '42'.json_encode([$req->receive??'error',$data],256));
+                if ((int) $data['code'] != 1) {
+                    $server->push((int) $frame->fd, '42' . json_encode([$req->receive ?? 'error', $data], 256));
                     return;
                 }
                 $res = '42' . json_encode([$req->receive, $data], 256);
             } else {
-                $res['action'] = $req->method??null;
-                $res = json_encode(array_merge($res, $data),256);
+                $res['action'] = $req->method ?? null;
+                $res           = json_encode(array_merge($res, $data), 256);
             }
-            
+
             if (!isset($res['uid'])) {
                 $uids = $frame->fd;
             } else {
@@ -274,7 +269,7 @@ class App
      */
     public static function request($request, $response)
     {
- 
+
         if ($request->server['path_info'] == '/favicon.ico' || $request->server['request_uri'] == '/favicon.ico') {
             $response->end();
             return;
@@ -286,16 +281,16 @@ class App
 
         try {
 
-            list($path, $class, $method, $rule, $auth,$name) = App::parseUri($request->server['request_uri']);
-            $req                                       = new \StdClass();
-            $req->header                               = $request->header;
-            $req->class                                = $class;
-            $req->method                               = $method;
-            $req->name                               = $name;
-            $req->auth                                 = $auth;
-            $req->rule                                 = $rule;
-            $req->path                                 = $path;
-            $req->content                              = $request->getContent();
+            list($path, $class, $method, $rule, $auth, $name) = App::parseUri($request->server['request_uri']);
+            $req                                              = new \StdClass();
+            $req->header                                      = $request->header;
+            $req->class                                       = $class;
+            $req->method                                      = $method;
+            $req->name                                        = $name;
+            $req->auth                                        = $auth;
+            $req->rule                                        = $rule;
+            $req->path                                        = $path;
+            $req->content                                     = $request->getContent();
 
             if (!$req->all = array_merge($request->get ?? [], $request->post ?? [])) {
                 $json = [];
@@ -306,14 +301,14 @@ class App
                         }
                         if (substr($tmp, 0, 1) == '{') {
                             $json = json_decode($tmp, true);
-                        } 
+                        }
                     }
                 }
                 // suc($json);
                 $req->all = array_merge($req->all, $json ?? []);
             }
             $req->files = $request->files;
-           
+
             $ret = (new $class($req))->auth()->check()->before()->$method();
             $response->end($ret);
 
@@ -358,7 +353,7 @@ class App
 
         if (str_starts_with($uri, '/configer') && APP_ENV == 'dev') {
 
-            $res = [$uri, '\\configer\\Configer', explode('/', $uri)[2] ?? 'index', 0, 0,''];
+            $res = [$uri, '\\configer\\Configer', explode('/', $uri)[2] ?? 'index', 0, 0, ''];
             return $res;
         }
 

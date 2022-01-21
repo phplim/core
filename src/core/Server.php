@@ -64,6 +64,7 @@ class Server
         $tcp = self::$server->listen("0.0.0.0", APP_HW_PORT - 1, SWOOLE_SOCK_TCP);
         $tcp->set([]);
         $tcp->on('receive', function ($server, $fd, $reactor_id, $data) {
+
             if (!$res = json_decode((string) $data, true)) {
                 // wlog('tcp请求非法');
                 return;
@@ -203,5 +204,12 @@ class Server
                 });
             }
         }
+    }
+
+
+    public static function __callStatic($method, $args)
+    {
+        $res = lim_tcp('127.0.0.1' . ':' . (APP_HW_PORT - 1), ['token' => APP::token(), 'action' =>$method]);
+        wlog($res);
     }
 }

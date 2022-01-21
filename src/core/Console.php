@@ -35,10 +35,6 @@ class Console
         //             break;
         //     }
 
-            
-
-            
-
         // } catch (\Swoole\ExitException $e) {
         //     print_r($e);
         // }
@@ -117,11 +113,11 @@ class Console
                     wlog('create public/index.php');
                 }
 
-                if (!is_file(ROOT . 'lim')) {
-                    copy(ROOT . 'vendor/phplim/core/src/source/lim', ROOT . 'lim');
-                    chmod(ROOT . 'vendor/phplim/core/src/source/lim', 0777);
-                    wlog('create lim');
-                }
+                // if (!is_file(ROOT . 'lim')) {
+                //     copy(ROOT . 'vendor/phplim/core/src/source/lim', ROOT . 'lim');
+                //     chmod(ROOT . 'vendor/phplim/core/src/source/lim', 0777);
+                //     wlog('create lim');
+                // }
 
             } else {
                 $act = array_shift($argv);
@@ -167,8 +163,16 @@ class Console
                         wlog(shell_exec($script));
                         wlog('推送代码成功');
                         break;
+                    case 'create':
+                        print_r($argv);
+                        break;
+                    case 'lim':
+                        $script = "grep -q 'alias lim=\"php start.php\"' ~/.bashrc && echo '命令已存在' || ( sed -i '\$a alias lim=\"php start.php\"' ~/.bashrc && echo '添加快捷命令成功')  && source ~/.bashrc";
+                        wlog(shell_exec($script));
+                        break;
                     default:
-                        echo 'aaa';
+
+                        echo 'hello';
                         break;
                 }
             }
@@ -178,7 +182,7 @@ class Console
         if ($fn = $o['F'] ?? null) {
             try {
                 Configer::init();
-
+                print_r(get_included_files());
                 run(fn() => $fn(...$argv));
             } catch (\Swoole\ExitException $e) {
                 print_r($e);
