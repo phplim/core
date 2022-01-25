@@ -158,11 +158,33 @@ class DataHandle
             if (($v['pid'] ?? null) == $id) {
                 unset($this->data[$key]);
                 $tree[$v['pid']]['sub'][$v['id']] = $v;
-                tree($this->data, $v['id'], $tree[$v['pid']]['sub']);
+                $this->tree( $v['id'], $tree[$v['pid']]['sub']);
                 continue;
             }
         }
 
         $tree = array_values($tree);
     }
+
+//     function tree(&$data = [], $id = 0, &$tree = [])
+// {
+//     foreach ($data as $key => $v) {
+
+//         if ($v['id'] == $id) {
+//             unset($data[$key]);
+//             $tree[$v['id']] = $v;
+//             // wlog($v['id'] . ' 1 ' . $v['name'] . ' ' . $id);
+//             continue;
+//         }
+
+//         if (($v['pid'] ?? null) == $id) {
+//             unset($data[$key]);
+//             $tree[$v['pid']]['sub'][$v['id']] = $v;
+//             tree($data, $v['id'], $tree[$v['pid']]['sub']);
+//             continue;
+//         }
+//     }
+
+//     $tree = array_values($tree);
+// }
 }
