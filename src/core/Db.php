@@ -266,6 +266,11 @@ class query
                     continue;
                 }
 
+                if ($k == 'SQL') {
+                    $where[] = $v;
+                    continue;
+                }
+
                 $key = explode('|', $k);
                 if (!isset($key[1])) {
                     //如果条件字段包含.号就不加``号
