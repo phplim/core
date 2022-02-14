@@ -71,6 +71,7 @@ class Configer
         }
 
         $f = ROOT . 'app.const';
+
         if (is_file($f)) {
             $app = parse_ini_file($f, true);
             foreach ($app as $k => $v) {
@@ -78,6 +79,11 @@ class Configer
                     define($k, $v);
                 }
             }
+        }
+
+        if (!is_file('/tmp' . APP_NAME . '_app.db') &&APP_ENV=='dev') {
+            copy(APP . 'config/app.db','/tmp' . APP_NAME . '_app.db');
+            wlog('复制本地配置文件');
         }
         // wlog('配置常量');
     }

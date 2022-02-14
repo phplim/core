@@ -292,21 +292,18 @@ class App
             $req->path                                        = $path;
             $req->content                                     = $request->getContent();
 
-            if (!$req->all = array_merge($request->get ?? [], $request->post ?? [])) {
-                $json = [];
-                if (!$request->files) {
-                    if ($tmp = $request->getContent()) {
-                        if (DATA_CRYPT) {
-                            $json = self::crypt($tmp, true);
-                        }
-                        if (substr($tmp, 0, 1) == '{') {
-                            $json = json_decode($tmp, true);
-                        }
-                    }
+            $req->all = array_merge($request->get ?? [], $request->post ?? []);
+            if ($tmp = $request->getContent()) {
+                $json = null;
+                if (DATA_CRYPT) {
+                    $json = self::crypt($tmp, true);
                 }
-                // suc($json);
+                if (substr($tmp, 0, 1) == '{') {
+                    $json = json_decode($tmp, true);
+                }
                 $req->all = array_merge($req->all, $json ?? []);
             }
+  
             $req->files = $request->files;
 
             $ret = (new $class($req))->auth()->check()->before()->$method();
