@@ -82,7 +82,7 @@ class Server
 
             switch ($action) {
                 case 'sync':
-                    $script = "cd " . ROOT . " && git pull --no-rebase;";
+                    $script = "cd " . ROOT . " && sudo git pull --no-rebase;";
                     $e      = shell_exec($script);
                     $server->reload();
                     // wlog($e);

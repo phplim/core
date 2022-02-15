@@ -316,7 +316,6 @@ class dbsQuery
                     case 'in':
                     case 'not in':
                         if (!is_array($v[2])) {
-                            print_r(get_included_files());
                             return;
                         }
                         $this->where[] = $v[0] . ' ' . strtoupper($v[1]) . ' (\'' . implode('\',\'', $v[2]) . '\')';
