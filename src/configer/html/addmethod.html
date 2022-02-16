@@ -4,7 +4,7 @@
 	<input class="layui-input" name="mid" placeholder="ID" />
 	<input class="layui-input" name="name" placeholder="名称" />
 	<input class="layui-input" name="method" placeholder="方法" />
-	<input class="layui-input" name="rule" placeholder="规则" />
+	<input class="layui-input" name="auth" placeholder="权限" />
 	<input class="layui-input" name="url" placeholder="URL" />
 	<button class="layui-btn layui-btn-primary" lay-submit="add">添加</button>
 </form>
@@ -36,15 +36,13 @@
 		data.top = v.mid;
 		
 		if(e.field.url!=''){
-			data.url = v.url+'/'+e.field.url;
+			data.url = (v.url+'/'+e.field.url).toLowerCase();
 		} else {
-			data.url = v.url+'/'+e.field.method;
+			data.url = (v.url+'/'+e.field.method).toLowerCase();
 		}
 
-		if(e.field.rule==''){
-			data.rule = data.class.split('\\').pop()+'.'+e.field.method
-		}
-		
+		data.rule = data.class.split('\\').pop().toLowerCase()+'.'+e.field.method.toLowerCase()
+
 		console.log(data)
 
 		post('api', 'insert', data)

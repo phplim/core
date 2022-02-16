@@ -1,5 +1,5 @@
 <?include "nav.html"?>
-<div class="wrap pl210">
+<div class="wrap pl210 pt50">
     <div class="tool layui-form">
         <button class="layui-btn" id="classer" lay-submit="">
             分组
@@ -10,7 +10,7 @@
         <button class="layui-btn" id="delete" lay-submit="">
             删除
         </button>
-        <div class="layui-inline">
+<!--         <div class="layui-inline">
             <select lay-verify="" name="city">
                 <option value="">
                     请选择一个城市
@@ -25,9 +25,9 @@
                     杭州
                 </option>
             </select>
-        </div>
+        </div> -->
     </div>
-    <table class="layui-hide mt50" id="table">
+    <table class="layui-hide" id="table">
     </table>
     <script id="status" type="text/html">
         <div class="layui-form">
@@ -140,8 +140,14 @@
 				{
 					field: 'className',
 					title: '分组名',
-					width: 125,
+					width: 80,
 					align: "center"
+				},
+				{
+					field: 'class',
+					title: '类',
+					edit: true,
+					width: 200
 				},
 				{
 					field: 'name',
@@ -150,11 +156,18 @@
 					edit: true,
 					align: "center"
 				},
+				
 				{
 					field: 'method',
 					title: '方法',
 					edit: true,
-					width: 150
+					width: 200
+				},
+				{
+					field: 'auth',
+					title: '权限',
+					edit: true,
+					width: 80
 				},
 				{
 					field: 'url',

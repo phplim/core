@@ -17,6 +17,7 @@ class App
      * @param    [type]                   $request [description]
      * @return   [type]                            [description]
      */
+
     public static function open($server, $request)
     {
         try {
@@ -225,39 +226,7 @@ class App
         return Server::$cache->get($k);
     }
 
-    /**
-     * 传统FPM请求
-     * @Author   Wayren
-     * @DateTime 2021-10-08T15:16:26+0800
-     * @param    string                   $value [description]
-     * @return   [type]                          [description]
-     */
-    public static function nginx($value = '')
-    {
-        // \app\Hook::nginx($frame);
-        header('content-type:application/json');
-        if (substr($_GET['s'], 0, 1) == '/') {unset($_GET['s']);}
-        $get  = $_GET;
-        $post = !empty($_POST) ? $_POST : json_decode(file_get_contents("php://input"), true);
-        $all  = array_merge($get, $post ?? []);
 
-        list($path, $class, $method, $rule, $auth) = App::parseUri($_SERVER['REQUEST_URI']);
-        $req                                       = new \StdClass();
-        foreach ($_SERVER as $k => $v) {
-            $k = strtolower($k);
-            if (str_contains($k, 'http')) {
-                $req->header[substr($k, 5)] = $v;
-            }
-        }
-        $req->header['ip'] = $_SERVER['HTTP_IP'] ?? $_SERVER['REMOTE_ADDR'];
-        $req->all          = $all;
-        $req->class        = $class;
-        $req->method       = $method;
-        $req->auth         = $auth;
-        $req->rule         = $rule;
-        $req->path         = $path;
-        (new $class($req))->auth()->check()->before()->$method();
-    }
 
     /**
      * Swoole请求
@@ -280,33 +249,30 @@ class App
         $response->header("Access-Control-Allow-Headers", "*");
 
         try {
+            $req         = (object) Helper::parseRequest($request->server['request_uri']);
+            $class       = $req->class;
+            $method      = $req->method;
+            $req->header = $request->header;
+            $req->files = $request->files;
 
-            list($path, $class, $method, $rule, $auth, $name) = App::parseUri($request->server['request_uri']);
-            $req                                              = new \StdClass();
-            $req->header                                      = $request->header;
-            $req->class                                       = $class;
-            $req->method                                      = $method;
-            $req->name                                        = $name;
-            $req->auth                                        = $auth;
-            $req->rule                                        = $rule;
-            $req->path                                        = $path;
-            $req->content                                     = $request->getContent();
-
-            $req->all = array_merge($request->get ?? [], $request->post ?? []);
-            if ($tmp = $request->getContent()) {
-                $json = null;
-                if (DATA_CRYPT) {
-                    $json = self::crypt($tmp, true);
-                }
-                if (substr($tmp, 0, 1) == '{') {
-                    $json = json_decode($tmp, true);
+            if (!$req->all = array_merge($request->get ?? [], $request->post ?? [])) {
+                $json = [];
+                if (!$request->files) {
+                    if ($tmp = $request->getContent()) {
+                        if (DATA_CRYPT) {
+                            $json = self::crypt($tmp, true);
+                        }
+                        if (substr($tmp, 0, 1) == '{') {
+                            $json = json_decode($tmp, true);
+                        }
+                    }
                 }
                 $req->all = array_merge($req->all, $json ?? []);
             }
-  
-            $req->files = $request->files;
-
-            $ret = (new $class($req))->auth()->check()->before()->$method();
+            
+            self::$ext  = $req;
+            // \app\Route::register(self::$ext);
+            $ret        = (new $class($req))->auth()->before()->$method();
             $response->end($ret);
 
         } catch (\Swoole\ExitException $e) {
@@ -318,22 +284,6 @@ class App
                 $response->header("Content-Type", 'text/html');
             }
             $response->end($ret);
-        }
-    }
-
-    /**
-     * 定时任务
-     * @Author   Wayren
-     * @DateTime 2021-10-08T16:23:58+0800
-     * @param    [type]                   $server [description]
-     * @param    [type]                   $task   [description]
-     * @return   [type]                           [description]
-     */
-    public static function task($server, $task)
-    {
-        // \app\Hook::task($task);
-        if (isset($task->data['run'])) {
-            objRun($task->data['run']);
         }
     }
 
@@ -404,7 +354,7 @@ class App
             // return null;
         }
 
-        return base64_encode(openssl_encrypt(time() . '|' . $v, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
+        return base64_encode(openssl_encrypt(time() . '|' . (is_array($v) ?json_encode($v,256) : $v), TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
     }
 
     public static function crypt($data = '', $de = false)
@@ -428,4 +378,39 @@ class App
 
         return base64_encode(openssl_encrypt((string) $data, TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
     }
+
+    /**
+     * 传统FPM请求
+     * @Author   Wayren
+     * @DateTime 2021-10-08T15:16:26+0800
+     * @param    string                   $value [description]
+     * @return   [type]                          [description]
+     */
+    public static function nginx($value = '')
+    {
+        // \app\Hook::nginx($frame);
+        header('content-type:application/json');
+        if (substr($_GET['s'], 0, 1) == '/') {unset($_GET['s']);}
+        $get  = $_GET;
+        $post = !empty($_POST) ? $_POST : json_decode(file_get_contents("php://input"), true);
+        $all  = array_merge($get, $post ?? []);
+
+        list($path, $class, $method, $rule, $auth) = App::parseUri($_SERVER['REQUEST_URI']);
+        $req                                       = new \StdClass();
+        foreach ($_SERVER as $k => $v) {
+            $k = strtolower($k);
+            if (str_contains($k, 'http')) {
+                $req->header[substr($k, 5)] = $v;
+            }
+        }
+        $req->header['ip'] = $_SERVER['HTTP_IP'] ?? $_SERVER['REMOTE_ADDR'];
+        $req->all          = $all;
+        $req->class        = $class;
+        $req->method       = $method;
+        $req->auth         = $auth;
+        $req->rule         = $rule;
+        $req->path         = $path;
+        (new $class($req))->auth()->check()->before()->$method();
+    }
+
 }

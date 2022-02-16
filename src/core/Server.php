@@ -18,10 +18,6 @@ class Server
 
         static::$io = new \stdClass;
 
-        if (method_exists(\app\Hook::class, 'boot')) {
-            \app\Hook::boot();
-        }
-
         if (!is_dir(ROOT . 'public')) {
             mkdir(ROOT . 'public', true);
         }
@@ -55,7 +51,10 @@ class Server
         self::$server->on('WorkerStart', ['\lim\Server', 'WorkerStart']);
         // self::$server->on('WorkerStop', fn() => '');
         self::$server->on('AfterReload', fn() => self::loadTasker());
-        self::$server->on('task', ['\lim\App', 'task']);
+        // self::$server->on('task', ['\lim\App', 'task']);
+
+        self::$server->on('task', ['\lim\Server', 'task']);
+
         self::$server->on('open', [$app, 'open']);
         self::$server->on('message', [$app, 'message']);
         self::$server->on('close', fn() => '');
@@ -82,7 +81,7 @@ class Server
 
             switch ($action) {
                 case 'sync':
-                    $script = "cd " . ROOT . " && sudo git pull --no-rebase;";
+                    $script = "cd " . ROOT . " && git pull --no-rebase;";
                     $e      = shell_exec($script);
                     $server->reload();
                     // wlog($e);
@@ -154,10 +153,6 @@ class Server
                 $id = $workerId - $server->setting['worker_num'];
 
                 if ($id == 0) {
-                    if (method_exists(\app\Hook::class, 'task')) {
-                        \app\Hook::task();
-                    }
-
                     // print_r(get_defined_constants(true)['user']);
                     // print_r(get_included_files());
                 }
@@ -169,6 +164,21 @@ class Server
             wlog($e->getStatus());
         }
 
+    }
+
+    /**
+     * 定时任务
+     * @Author   Wayren
+     * @DateTime 2021-10-08T16:23:58+0800
+     * @param    [type]                   $server [description]
+     * @param    [type]                   $task   [description]
+     * @return   [type]                           [description]
+     */
+    public static function task($server, $task)
+    {
+        if (isset($task->data['run'])) {
+            objRun($task->data['run']);
+        }
     }
 
     private static function loadTasker()
@@ -206,10 +216,18 @@ class Server
         }
     }
 
-
     public static function __callStatic($method, $args)
     {
-        $res = lim_tcp('127.0.0.1' . ':' . (APP_HW_PORT - 1), ['token' => APP::token(), 'action' =>$method]);
-        wlog($res);
+        switch ($method) {
+            case 'reload':
+                self::$server->reload();
+                break;
+
+            default:
+                // code...
+                break;
+        }
+        // $res = lim_tcp('127.0.0.1' . ':' . (APP_HW_PORT - 1), ['token' => APP::token(), 'action' =>$method]);
+        // wlog($res);
     }
 }

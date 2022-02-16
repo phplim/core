@@ -108,7 +108,9 @@ class Dbs
 
             switch ($info->action) {
                 case 'insert':
-                    $result = $pdo->exec($info->sql);
+                    if ($result = $pdo->exec($info->sql)) {
+                        $result = (int) $pdo->lastInsertId();
+                    }
                     break;
                 case 'update':
                     $result = $pdo->exec($info->sql);
@@ -118,9 +120,27 @@ class Dbs
                     break;
                 case 'select':
                     $result = $pdo->query($info->sql)->fetchAll();
+                    if (isset($info->jsonCols)) {
+                        foreach ($result as $k => $v) {
+                            foreach ($info->jsonCols as $value) {
+                                if (isset($v[$value])) {
+                                    $result[$k][$value] = json_decode($v[$value], true);
+                                }
+                            }
+                        }
+                    }
                     break;
                 case 'find':
-                    $result = $pdo->query($info->sql)->fetch();
+                    if ($result = $pdo->query($info->sql)->fetch()) {
+                        if (isset($info->jsonCols)) {
+                            foreach ($info->jsonCols as $v) {
+                                if (isset($result[$v])) {
+                                    $result[$v] = json_decode($result[$v], true);
+                                }
+                            }
+                        }
+                        ksort($result);
+                    }
                     break;
                 case 'jsonHas':
                     $result = $pdo->query($info->sql)->fetch()['n'];
@@ -192,9 +212,23 @@ class dbsQuery
         return $this;
     }
 
-    public function orderby($value = '')
+    public function orderby($key = '', $value = null)
     {
+        if (is_string($key)) {
+            $this->orderby[] = $key . ' ' . $value;
+        }
+        foreach ($key as $k => $v) {
+            $this->orderby[] = $k . ' ' . $v;
+        }
         return $this;
+    }
+
+    private function _orderby()
+    {
+        if (!isset($this->orderby)) {
+            return '';
+        }
+        return 'ORDER BY ' . implode(',', $this->orderby);
     }
 
     /**
@@ -207,6 +241,10 @@ class dbsQuery
      */
     public function json($action = '', ...$opt)
     {
+        if (is_array($action)) {
+            $this->jsonCols = $action;
+            return $this;
+        }
         $len = count($opt);
         switch ($action) {
             case 'has' && $len == 2:
@@ -220,6 +258,9 @@ class dbsQuery
                 $this->sets[]            = $col . ' = JSON_SET(' . $col . ',\'$."' . $key . '"\',\'' . $value . '\') ';
                 break;
             case 'unset':
+                break;
+            case 'cols':
+                $this->jsonCols = explode(',', end($opt));
                 break;
             default:
                 // code...
@@ -266,6 +307,9 @@ class dbsQuery
      */
     public function where($k = '', $s = null, $v = null)
     {
+        if (empty($k)) {
+            return $this;
+        }
         //解析条件数组
         if (is_array($k)) {
             foreach ($k as $key => $v) {
@@ -413,7 +457,7 @@ class dbsQuery
     public function select()
     {
         $this->action = 'select';
-        $this->sql    = "SELECT {$this->cols} FROM {$this->table} " . $this->parseWhere();
+        $this->sql    = "SELECT {$this->cols} FROM {$this->table} " . $this->parseWhere() . $this->_orderby();
         return $this->todo();
     }
 
@@ -421,8 +465,9 @@ class dbsQuery
     {
         $this->where($k, $s, $v);
         $this->action = 'find';
-        $this->sql    = "SELECT {$this->cols} FROM {$this->table} " . $this->parseWhere()." LIMIT 1";
+        $this->sql    = "SELECT {$this->cols} FROM {$this->table} " . $this->parseWhere() . $this->_orderby() . " LIMIT 1";
         // wlog($this->sql);
+        // print_r($this);
         return $this->todo();
     }
 

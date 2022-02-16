@@ -145,7 +145,6 @@ class Configer
         if (is_file('/tmp/'.APP_NAME.'_app.db')) {
             copy('/tmp/'.APP_NAME.'_app.db', APP.'config/app.db');
         }
-
         \lim\Server::reload();
     }
 }

@@ -67,11 +67,10 @@ class Configer
             if (!defined('DATA_CRYPT')) {
                 define('DATA_CRYPT', 0);
             }
-            
+
         }
 
         $f = ROOT . 'app.const';
-
         if (is_file($f)) {
             $app = parse_ini_file($f, true);
             foreach ($app as $k => $v) {
@@ -81,8 +80,8 @@ class Configer
             }
         }
 
-        if (!is_file('/tmp' . APP_NAME . '_app.db') &&APP_ENV=='dev') {
-            copy(APP . 'config/app.db','/tmp' . APP_NAME . '_app.db');
+        if (!is_file('/tmp/' . APP_NAME . '_app.db') &&APP_ENV=='dev') {
+            copy(APP . 'config/app.db','/tmp/' . APP_NAME . '_app.db');
             wlog('复制本地配置文件');
         }
         // wlog('配置常量');
@@ -254,15 +253,16 @@ class Configer
         //加载API路由
         $api = $pdo->query("SELECT * FROM lim_api WHERE status =1 AND top>0 ORDER BY top ASC ,mid ASC ")->fetchAll();
         foreach ($api as $k => $v) {
-            $route[strtolower($v['url'])] = [
-                strtolower($v['url']),
-                $v['class'],
-                $v['method'],
-                $v['rule'],
-                $v['top'] . '.' . $v['mid'],
-                $v['name'],
-                $v['speed'],
-            ];
+            // $route[strtolower($v['url'])] = [
+            //     strtolower($v['url']),
+            //     $v['class'],
+            //     $v['method'],
+            //     $v['rule'],
+            //     $v['top'] . '.' . $v['mid'],
+            //     $v['name'],
+            //     $v['speed']
+            // ];
+            $route[strtolower($v['url'])]=$v;
         }
 
         //加载角色
@@ -270,9 +270,10 @@ class Configer
         foreach ($roler as $k => $v) {
             $role[$v['id']] = json_decode($v['auth'], true);
         }
-        self::$data['route'] = $route;
+        self::$data['route'] = $route??[];
+        // self::$data['apis'] = $apis??[];
         // wlog('配置路由');
-        self::$data['role'] = $role;
+        self::$data['role'] = $role??[];
         // wlog('配置角色');
     }
 

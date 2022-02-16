@@ -465,6 +465,7 @@ class query
         }
         $sql = "SELECT {$this->cols} FROM {$this->table}" . $this->where . $this->groupBy . $this->orderSql . $this->limit;
 
+
         $data = $this->query($sql)->fetchAll();
 
         if ($this->count) {
@@ -487,6 +488,7 @@ class query
             return null;
         }
         
+
         array_walk($data, function (&$e) {$e = is_array($e) || is_object($e) ? json_encode($e, 256) : $e;});
 
         if (APP_ENV == 'dev') {

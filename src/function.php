@@ -8,6 +8,22 @@ use \lim\Server;
 
 // Configer::init();
 Configer::define();
+
+
+function app($key='',...$opt)
+{
+    
+    $res = \lim\App::$ext;
+    switch ($key) {
+        case 'user':
+            return $res->user??null;
+        case 'data':
+            return \lim\Model::_getData($res,$opt);
+        default:
+            // code...
+            break;
+    }
+}
 /**
  * 创建目录
  * @Author   Wayren

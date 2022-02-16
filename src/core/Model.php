@@ -14,6 +14,47 @@ class Model
         }
     }
 
+    /**
+     * 获取用户请求数据
+     * @Author   Wayren
+     * @DateTime 2022-01-26T12:38:55+0800
+     * @param    [type]                   $res [description]
+     * @param    boolean                  $opt [description]
+     * @return   [type]                        [description]
+     */
+    public static function _getData($res, $opt = false)
+    {
+        if ($opt) {
+
+            $rule = config('rule');
+            $arr  = explode('.', strtolower((string) $res->rule));
+
+            foreach ($arr as $k => $v) {
+                if (!isset($rule[$v])) {
+                    return null;
+                }
+                $rule = $rule[$v];
+            }
+
+            $vars = array_keys($rule);
+
+            //过滤非法参数
+            foreach ($res->all as $k => $v) {
+
+                //排除表达式过滤
+                if (preg_match('/\|/', $k)) {
+                    continue;
+                }
+
+                if (!in_array($k, $vars)) {
+                    unset($res->all[$k]);
+                }
+            }
+            rule($rule, $res->all)->break();
+        }
+        return $res->all ?? null;
+    }
+
     public function __call($method, $args)
     {
         // print_r([$method, $args]);
@@ -63,17 +104,12 @@ class Model
         return $data;
     }
 
-    public static function insert($data = [], $msg = '')
+    public static function _insert($data=null)
     {
-        static::check('insert', $data);
-        $res = Db::use (static::$database)->table(static::$table)->insert($data);
-        if ($msg) {
-            $res !== null ? suc($res, $msg . '成功') : err($msg . '失败');
-        }
-        return $res;
+        return Dbs::use (static::$database)->table(static::$table)->insert($data??app('data',true));
     }
 
-    public static function update($data, $where, $msg = '')
+    public static function _update($data, $where, $msg = '')
     {
         static::check('update', $data);
         $res = Db::use (static::$database)->table(static::$table)->update($data, $where);
@@ -103,34 +139,17 @@ class Model
         return $res;
     }
 
-    public static function search($where = [], $cols = '*')
-    {
-  
-        static::check('search', $where);
-
-        $res = Db::use (static::$database)->table(static::$table)->cols($cols)->select($where);
-       
-        $class = get_called_class();
-
-        return new $class($res);
-    }
-
-    public static function cols($cols = '*', $pear = true)
-    {
-        return Db::use (static::$database)->table(static::$table)->cols($cols, $pear);
-    }
-
-    public static function exec($sql = '')
+    public static function _exec($sql = '')
     {
         return Db::use (static::$database)->exec($sql);
     }
 
-    public static function find($v = '', $k = 'id')
+    public static function _find($v = '', $k = 'id')
     {
         return Db::use (static::$database)->table(static::$table)->get([$k => $v]);
     }
 
-    public static function all($cols = '*', $delete = null)
+    public static function _all($cols = '*', $delete = null)
     {
         $where = $delete ? ['deleted_at|null' => true] : [];
         $res   = Db::use (static::$database)->table(static::$table)->cols($cols)->select($where);
@@ -163,5 +182,10 @@ class Model
         }
         return $data;
     }
-}
 
+    public static function _cols($cols = '*', $pear = true)
+    {
+        return Db::use (static::$database)->table(static::$table)->cols($cols, $pear);
+    }
+
+}
