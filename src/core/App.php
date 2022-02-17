@@ -101,7 +101,7 @@ class App
                     $req->fd     = $frame->fd;
                     break;
                 default:
-                    $req->socketio = 0;
+                    // $req->socketio = 0;
 
                     $info = json_decode($code, true) ?? null;
 
@@ -110,19 +110,29 @@ class App
                         return;
                     }
 
-                    list($path, $class, $method, $rule, $auth, $name) = App::parseUri($info['action']);
-
-                    $req->header['token'] = $info['token'] ?? '';
-                    $req->receive??=$method;
+                    $req         = (object) Helper::parseRequest($info['action']);
+                    $req->socketio = 0;
                     $req->all = $info['data'];
-
-                    $req->class  = $class;
-                    $req->method = $method;
-                    $req->name   = $name;
-                    $req->auth   = $auth;
-                    $req->path   = $path;
-                    $req->rule   = $rule;
+                    $req->data = $info['data'];
+                    $method      = $req->method;
+                    $req->receive??=$method;
+                    $req->header['token'] = $info['token'] ?? '';
                     $req->fd     = $frame->fd;
+                    $class       = $req->class;
+
+                    // list($path, $class, $method, $rule, $auth, $name) = App::parseUri($info['action']);
+
+                    // $req->header['token'] = $info['token'] ?? '';
+                    // $req->receive??=$method;
+                    // $req->all = $info['data'];
+
+                    // $req->class  = $class;
+                    // $req->method = $method;
+                    // $req->name   = $name;
+                    // $req->auth   = $auth;
+                    // $req->path   = $path;
+                    // $req->rule   = $rule;
+                    // $req->fd     = $frame->fd;
 
                     break;
             }

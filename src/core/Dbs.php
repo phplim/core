@@ -8,6 +8,7 @@ use \Swoole\Database\PDOPool;
 class Dbs
 {
     public static $commit = false, $query = [], $sql = '', $pdo = null;
+    
     public static function init($db = 'default')
     {
         $c                      = config('db.mysql')[$db];
@@ -89,6 +90,32 @@ class Dbs
         return $result;
     }
 
+    public static function query($sql='')
+    {
+        $result = null;
+
+        if (!$pdo = static::pdo()) {
+            return;
+        }
+
+        try {
+            $pdo->beginTransaction();
+            $result = $pdo->query($sql);
+            $pdo->commit();
+            wlog($sql);
+        } catch (\Throwable $e) {
+            $pdo->rollBack();
+            if (!str_contains($e->getMessage(), 'Duplicate')) {
+                wlog($sql . ' ' . $e->getMessage(), 'db');
+            }
+
+            // wlog($sql . ' ' . $e->getMessage(), 'db');
+        }
+        // Server::$MysqlPool[static::$query->database]->put($pdo);
+        $pdo = null;
+        return $result;
+    }
+
     public static function run($info)
     {
         $result = null;
@@ -100,6 +127,7 @@ class Dbs
         try {
 
             $pdo->beginTransaction();
+            // wlog($info->sql);
 
             // $statement = $pdo->prepare($info->sql);
             // if (!$statement) {
@@ -255,7 +283,10 @@ class dbsQuery
                 return $this->todo();
             case 'set' && $len == 3:
                 list($col, $key, $value) = $opt;
-                $this->sets[]            = $col . ' = JSON_SET(' . $col . ',\'$."' . $key . '"\',\'' . $value . '\') ';
+                if (is_array($value)) {
+                    $value = json_encode($value,256);
+                }
+                $this->sets[]            = $col . ' = JSON_SET(' . $col . ',\'$.' . $key . '\',\'' . $value . '\') ';
                 break;
             case 'unset':
                 break;
@@ -266,6 +297,7 @@ class dbsQuery
                 // code...
                 break;
         }
+        return $this;
     }
 
     public function jsonSetKeys($keys = '')
@@ -437,6 +469,7 @@ class dbsQuery
             }
 
             if (is_array($v)) {
+                // ksort($v);
                 $v = json_encode($v, 256);
             }
 
