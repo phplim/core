@@ -1,16 +1,19 @@
 <?include "header.html"?>
 <form class="layui-form">
-	<select id="class" name="class"></select>
-	<input class="layui-input" name="mid" placeholder="ID" />
-	<input class="layui-input" name="name" placeholder="名称" />
-	<input class="layui-input" name="method" placeholder="方法" />
-	<input class="layui-input" name="auth" placeholder="权限" />
-	<input class="layui-input" name="url" placeholder="URL" />
-	<button class="layui-btn layui-btn-primary" lay-submit="add">添加</button>
+    <select id="class" name="class">
+    </select>
+    <input class="layui-input" name="mid" placeholder="ID"/>
+    <input class="layui-input" name="name" placeholder="名称"/>
+    <input class="layui-input" name="method" placeholder="方法"/>
+    <input class="layui-input" name="auth" placeholder="权限"/>
+    <input class="layui-input" name="rule" placeholder="规则"/>
+    <input class="layui-input" name="url" placeholder="URL"/>
+    <button class="layui-btn layui-btn-primary" lay-submit="add">
+        添加
+    </button>
 </form>
-
 <script id="demo" type="text/html">
-	<select name="class">
+    <select name="class">
 		<option value="">分组</option>
 		{{# layui.each(d.data, function(index, item){ }}
 			<option value="{{item.class}}">{{ item.name }}</option>
@@ -19,7 +22,7 @@
 </script>
 <?include "footer.html"?>
 <script>
-	var classer = [];
+    var classer = [];
 	post('api', 'class', {}, e => {
 		classer = e.data;
 		console.log(e)
@@ -41,7 +44,10 @@
 			data.url = (v.url+'/'+e.field.method).toLowerCase();
 		}
 
-		data.rule = data.class.split('\\').pop().toLowerCase()+'.'+e.field.method.toLowerCase()
+		if (data.rule=='') {
+			data.rule = data.class.split('\\').pop().toLowerCase()+'.'+e.field.method.toLowerCase()
+		}
+		
 
 		console.log(data)
 

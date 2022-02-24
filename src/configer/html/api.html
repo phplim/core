@@ -10,8 +10,9 @@
         <button class="layui-btn" id="delete" lay-submit="">
             删除
         </button>
-<!--         <div class="layui-inline">
-            <select lay-verify="" name="city">
+        <div class="layui-inline w100">
+        	<select id="class" name="class"></select>
+<!--             <select lay-verify="" name="city">
                 <option value="">
                     请选择一个城市
                 </option>
@@ -24,8 +25,8 @@
                 <option value="0571">
                     杭州
                 </option>
-            </select>
-        </div> -->
+            </select> -->
+        </div>
     </div>
     <table class="layui-hide" id="table">
     </table>
@@ -35,9 +36,27 @@
 				lay-filter="status" {{ d.status == 1 ? 'checked' : '' }}>
 		</div>
     </script>
+    <script id="demo"  type="text/html">
+	<select name="class" lay-filter="fz">
+		<option value="">分组</option>
+		{{# layui.each(d.data, function(index, item){ }}
+			<option value="{{item.id}}">{{ item.name }}</option>
+			{{# }); }}
+	</select>
+</script>
 </div>
 <?include "footer.html"?>
 <script>
+	post('api', 'class', {}, e => {
+		classer = e.data;
+		console.log(e)
+		var getTpl = demo.innerHTML,
+			view = document.getElementById('class');
+		laytpl(getTpl).render(e, function(html) {
+			view.innerHTML = html;
+			form.render();
+		})
+	})
     // form.render(); 
 	form.on('submit', function(e) {
 		console.log(e)
@@ -97,6 +116,12 @@
 		console.log(data)
 		post('api', 'update', data)
 	});
+
+	form.on('select()', function(data){
+	  console.log(data.elem); //得到select原始DOM对象
+	  console.log(data.value); //得到被选中的值
+	  console.log(data.othis); //得到美化后的DOM对象
+	}); 
 
 	table.on('radio', function(obj) {
 		tmp = obj

@@ -530,7 +530,18 @@ class dbsQuery
     public function __call($method, $args)
     {
         try {
-            print_r([$method, $args]);
+            switch ($method) {
+                case 'max':
+                    $col = array_shift($args);
+                    $result = Dbs::query("SELECT MAX($col) AS $method FROM $this->table")->fetch()[$method];
+                    break;
+                default:
+                    // code...
+                    break;
+            }
+
+            return $result ?? null;
+            
         } catch (Throwable $e) {
             print_r($e);
         }

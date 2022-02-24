@@ -9,6 +9,7 @@ class Server
 {
     public static $io, $extend, $cache = null, $ext = [], $server = null, $config, $ini = [], $MysqlPool = null, $RedisPool = null, $MysqlPoolNum = 0;
 
+
     public static function run($daemonize = false)
     {
         if (!static::$cache) {
@@ -18,8 +19,12 @@ class Server
 
         static::$io = new \stdClass;
 
-        if (method_exists(\app\Hook::class, 'boot')) {
-            \app\Hook::boot();
+        // if (method_exists(\app\Hook::class, 'boot')) {
+        //     \app\Hook::boot();
+        // }
+
+        if (is_file(APP.'init.php')) {
+            require APP . 'init.php';
         }
 
         if (!is_dir(ROOT . 'public')) {

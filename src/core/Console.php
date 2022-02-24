@@ -164,6 +164,7 @@ class Console
 
             switch ($o['S']) {
                 case 'run':
+                    Configer::init();
                     Server::run(isset($o['d']) ? true : false);
                     break;
                 case 'stop':
