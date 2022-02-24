@@ -122,7 +122,7 @@ class App
 
                     break;
             }
-
+            self::$ext  = $req;
             (new $class($req))->auth()->check()->before()->$method();
 
         } catch (\Swoole\ExitException $e) {

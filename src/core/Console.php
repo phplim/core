@@ -104,7 +104,7 @@ class Console
                             return;
                         }
 
-                        if (!$host = SYNC_HOST[array_shift($argv)] ?? null) {
+                        if (!$host = REMOTE[array_shift($argv)] ?? null) {
                             wlog('目标环境未配置');
                             return;
                         }
