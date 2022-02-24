@@ -120,20 +120,6 @@ class App
                     $req->fd     = $frame->fd;
                     $class       = $req->class;
 
-                    // list($path, $class, $method, $rule, $auth, $name) = App::parseUri($info['action']);
-
-                    // $req->header['token'] = $info['token'] ?? '';
-                    // $req->receive??=$method;
-                    // $req->all = $info['data'];
-
-                    // $req->class  = $class;
-                    // $req->method = $method;
-                    // $req->name   = $name;
-                    // $req->auth   = $auth;
-                    // $req->path   = $path;
-                    // $req->rule   = $rule;
-                    // $req->fd     = $frame->fd;
-
                     break;
             }
 
@@ -264,23 +250,19 @@ class App
             $method      = $req->method;
             $req->header = $request->header;
             $req->files = $request->files;
-
-            if (!$req->all = array_merge($request->get ?? [], $request->post ?? [])) {
-                $json = [];
-                if (!$request->files) {
-                    if ($tmp = $request->getContent()) {
-                        if (DATA_CRYPT) {
-                            $json = self::crypt($tmp, true);
-                        }
-                        if (substr($tmp, 0, 1) == '{') {
-                            $json = json_decode($tmp, true);
-                        }
-                    }
+            $req->all = array_merge($request->get ?? [], $request->post ?? []);
+            $json = [];
+            if ($tmp = $request->getContent()) {
+                if (DATA_CRYPT) {
+                    $json = self::crypt($tmp, true);
                 }
-                $req->all = array_merge($req->all, $json ?? []);
+                if (substr($tmp, 0, 1) == '{') {
+                    $json = json_decode($tmp, true);
+                }
             }
-            
+            $req->all = array_merge($req->all, $json ?? []);
             self::$ext  = $req;
+            // print_r(self::$ext);
             // \app\Route::register(self::$ext);
             $ret        = (new $class($req))->auth()->before()->$method();
             $response->end($ret);

@@ -18,6 +18,10 @@ class Server
 
         static::$io = new \stdClass;
 
+        if (method_exists(\app\Hook::class, 'boot')) {
+            \app\Hook::boot();
+        }
+
         if (!is_dir(ROOT . 'public')) {
             mkdir(ROOT . 'public', true);
         }

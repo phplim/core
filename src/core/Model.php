@@ -24,6 +24,7 @@ class Model
      */
     public static function _getData($res, $opt = false)
     {
+
         if ($opt) {
 
             $rule = config('rule');
@@ -119,7 +120,7 @@ class Model
         return $res;
     }
 
-    public static function delete($data, $msg = '')
+    public static function _delete($data, $msg = '')
     {
         static::check('delete', $data);
         $res = Db::use (static::$database)->table(static::$table)->delete($data);
@@ -144,9 +145,14 @@ class Model
         return Db::use (static::$database)->exec($sql);
     }
 
-    public static function _find($v = '', $k = 'id')
+    public static function _find($k = '', $s = null, $v = null)
     {
-        return Db::use (static::$database)->table(static::$table)->get([$k => $v]);
+        return Dbs::use (static::$database)->table(static::$table)->find($k, $s, $v);
+    }
+
+    public static function _select($k = '', $s = null, $v = null)
+    {
+        return Dbs::use (static::$database)->table(static::$table)->select($k, $s, $v);
     }
 
     public static function _all($cols = '*', $delete = null)
@@ -185,7 +191,7 @@ class Model
 
     public static function _cols($cols = '*', $pear = true)
     {
-        return Db::use (static::$database)->table(static::$table)->cols($cols, $pear);
+        return Dbs::use (static::$database)->table(static::$table)->cols($cols, $pear);
     }
 
 }

@@ -78,49 +78,10 @@ class Console
             Configer::define();
             // print_r(get_included_files());
             if (empty($argv)) {
-
-                echo "Less is More!" . PHP_EOL;
-
-                lim_mkdir('logs,app,app/api,app/task,app/config,app/config/rule,public', ROOT);
-
-                if (!is_file(ROOT . 'app/api/Api.php')) {
-                    copy(ROOT . 'vendor/phplim/core/src/source/Api.php', ROOT . 'app/api/Api.php');
-                    wlog('create app/api/Api.php');
-                }
-
-                if (!is_file(ROOT . 'app/config/rule/demo.php')) {
-                    copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/config/rule/demo.php');
-                    wlog('create app/config/rule/demo.php');
-                }
-
-                if (!is_file(ROOT . 'app/function.php')) {
-                    copy(ROOT . 'vendor/phplim/core/src/source/function.php', ROOT . 'app/function.php');
-                    wlog('create app/function.php');
-                }
-
-                if (!is_file(ROOT . 'app/Hook.php')) {
-                    copy(ROOT . 'vendor/phplim/core/src/source/Hook.php', ROOT . 'app/Hook.php');
-                    wlog('create app/Hook.php');
-                }
-
-                // if (!is_file(ROOT . 'install.sql')) {
-                //     copy(ROOT . 'vendor/phplim/core/src/source/install.sql', ROOT . 'install.sql');
-                //     wlog('create install.sql');
-                // }
-
-                if (!is_file(ROOT . 'public/index.php')) {
-                    copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
-                    wlog('create public/index.php');
-                }
-
-                // if (!is_file(ROOT . 'lim')) {
-                //     copy(ROOT . 'vendor/phplim/core/src/source/lim', ROOT . 'lim');
-                //     chmod(ROOT . 'vendor/phplim/core/src/source/lim', 0777);
-                //     wlog('create lim');
-                // }
-
+                $this->init();
             } else {
                 $act = array_shift($argv);
+                // $this->$act($argv);
                 switch ($act) {
                     case 'build':
                         $sync = 'cp -r ' . dirname(__DIR__) . ' /code/php/core/ && cd /code/php/core/ && git add . && git commit -m \'' . time() . '\' && git push';
@@ -136,9 +97,9 @@ class Console
                         shell_exec('rm -rf ' . ROOT . '.dev');
                         echo 'clear' . PHP_EOL;
                         break;
-                    case 'server':
+                    case 'remote':
 
-                        if (!defined('SYNC_HOST')) {
+                        if (!defined('REMOTE')) {
                             wlog('非本地环境');
                             return;
                         }
@@ -159,7 +120,7 @@ class Console
                         if (!$mark = array_shift($argv)) {
                             $mark = date('m-d');
                         }
-                        $script = " git add . && git commit -m '" . $mark . "' && git push;";
+                        $script = "sudo git add . && git commit -m '" . $mark . "' && git push;";
                         wlog(shell_exec($script));
                         wlog('推送代码成功');
                         break;
@@ -167,11 +128,13 @@ class Console
                         print_r($argv);
                         break;
                     case 'lim':
-                        $script = "grep -q 'alias lim=\"php start.php\"' ~/.bashrc && echo '命令已存在' || ( sed -i '\$a alias lim=\"php start.php\"' ~/.bashrc && echo '添加快捷命令成功')  && source ~/.bashrc";
+                        $script = "grep -q 'alias lim=\"sudo php start.php\"' ~/.bashrc && echo '命令已存在' || ( sed -i '\$a alias lim=\"sudo php start.php\"' ~/.bashrc && echo '添加快捷命令成功')  && source ~/.bashrc";
                         wlog(shell_exec($script));
                         break;
+                    case 'table':
+                        $this->table(...$argv);
+                        break;
                     default:
-
                         echo 'hello';
                         break;
                 }
@@ -223,4 +186,70 @@ class Console
         // print_r(get_included_files());
 
     }
+
+    public function init()
+    {
+        echo "Less is More!" . PHP_EOL;
+
+        lim_mkdir('logs,app,app/api,app/task,app/config,app/config/rule,public', ROOT);
+
+        if (!is_file(ROOT . 'app/api/Api.php')) {
+            copy(ROOT . 'vendor/phplim/core/src/source/Api.php', ROOT . 'app/api/Api.php');
+            wlog('create app/api/Api.php');
+        }
+
+        if (!is_file(ROOT . 'app/config/rule/demo.php')) {
+            copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/config/rule/demo.php');
+            wlog('create app/config/rule/demo.php');
+        }
+
+        if (!is_file(ROOT . 'app/function.php')) {
+            copy(ROOT . 'vendor/phplim/core/src/source/function.php', ROOT . 'app/function.php');
+            wlog('create app/function.php');
+        }
+
+        if (!is_file(ROOT . 'app/Hook.php')) {
+            copy(ROOT . 'vendor/phplim/core/src/source/Hook.php', ROOT . 'app/Hook.php');
+            wlog('create app/Hook.php');
+        }
+
+        if (!is_file(ROOT . 'public/index.php')) {
+            copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
+            wlog('create public/index.php');
+        }
+    }
+
+    public function table($action = '')
+    {
+        Configer::init();
+        $table = new Table;
+        $table->$action();
+        wlog($action);
+    }
+
+    public function server($value='')
+    {
+        // code...
+    }
+
+    public function remote($value='')
+    {
+        // code...
+    }
+
+    public function git($value='')
+    {
+        // code...
+    }
+
+    public function fn($value='')
+    {
+        // code...
+    }
+
+    public function obj($value='')
+    {
+        // code...
+    }
+
 }

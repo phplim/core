@@ -127,7 +127,7 @@ class Dbs
         try {
 
             $pdo->beginTransaction();
-            // wlog($info->sql);
+            wlog($info->sql);
 
             // $statement = $pdo->prepare($info->sql);
             // if (!$statement) {
@@ -159,6 +159,7 @@ class Dbs
                     }
                     break;
                 case 'find':
+                    // wlog($info->sql);
                     if ($result = $pdo->query($info->sql)->fetch()) {
                         if (isset($info->jsonCols)) {
                             foreach ($info->jsonCols as $v) {
@@ -345,6 +346,7 @@ class dbsQuery
         //解析条件数组
         if (is_array($k)) {
             foreach ($k as $key => $v) {
+
                 if (!is_numeric($key)) {
                     $this->parseWhere([$key, $v]);
                     continue;
@@ -375,6 +377,7 @@ class dbsQuery
             return '';
         }
 
+
         //解析条件语句
         $len = count($v);
         switch ($len) {
@@ -382,7 +385,7 @@ class dbsQuery
                 $this->where[] = $v[0];
                 break;
             case 2:
-                $this->where[] = $v[0] . ' = \'' . $v[1] . '\'';
+                $this->where[] = '`'.$v[0] . '` = \'' . $v[1] . '\'';
                 break;
             case 3:
                 switch (strtolower($v[1])) {
@@ -459,6 +462,7 @@ class dbsQuery
         foreach ($data as $k => $v) {
 
             if ($v === null) {
+                $tmp[] = '`' . $k . '` = NULL';
                 continue;
             }
 
@@ -487,8 +491,10 @@ class dbsQuery
         return $this->todo();
     }
 
-    public function select()
+
+    public function select($k = '', $s = null, $v = null)
     {
+        $this->where($k, $s, $v);
         $this->action = 'select';
         $this->sql    = "SELECT {$this->cols} FROM {$this->table} " . $this->parseWhere() . $this->_orderby();
         return $this->todo();
