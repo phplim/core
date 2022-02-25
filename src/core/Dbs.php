@@ -127,7 +127,7 @@ class Dbs
         try {
 
             $pdo->beginTransaction();
-            wlog($info->sql);
+            // wlog($info->sql);
 
             // $statement = $pdo->prepare($info->sql);
             // if (!$statement) {
