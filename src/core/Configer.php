@@ -20,7 +20,7 @@ class Configer
         // wlog(APP_ENV);
         $app = include APP . 'config/app.php';
 
-        if (is_file(include APP . 'config/local.php')) {
+        if (is_file(APP . 'config/local.php')) {
             $local = include APP . 'config/local.php';
         }
         
