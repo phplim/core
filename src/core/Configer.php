@@ -20,9 +20,11 @@ class Configer
         // wlog(APP_ENV);
         $app = include APP . 'config/app.php';
 
-        $local = include APP . 'config/local.php';
-
-        self::$data = array_merge($app, $local);
+        if (is_file(include APP . 'config/local.php')) {
+            $local = include APP . 'config/local.php';
+        }
+        
+        self::$data = array_merge($app, $local??[]);
 
         self::$data = array_merge(self::$data, static::filesToArray('config', null, ['app.php', 'local.php', 'app.db']));
 

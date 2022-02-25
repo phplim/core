@@ -104,7 +104,7 @@ class Console
                             return;
                         }
 
-                        if (!$host = REMOTE[array_shift($argv)] ?? null) {
+                        if (!$remote = REMOTE[array_shift($argv)] ?? null) {
                             wlog('目标环境未配置');
                             return;
                         }
@@ -113,7 +113,8 @@ class Console
                             wlog('缺少动作');
                             return;
                         }
-                        $res = lim_tcp($host . ':' . (APP_PORT - 1), ['token' => APP::token(), 'action' => $action]);
+                        
+                        $res = lim_tcp($remote, ['token' => APP::token(), 'action' => $action]);
                         wlog($res);
                         break;
                     case 'push':
