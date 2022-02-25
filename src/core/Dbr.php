@@ -11,7 +11,7 @@ class Dbr
     public static $opt =  [
         'database'=>'default',
         'table'=>null,
-        'where'=>null,
+        'where'=>[],
         'field'=>'*'
     ];
 
@@ -20,21 +20,11 @@ class Dbr
         // code...
     }
 
-    // public static function table($value='')
-    // {
-    //     // self::$table = $value;
-    //     return self::class;
-    // }
-
     public function insert($value = '')
     {
         // code...
     }
 
-    public function find($value = '')
-    {
-        // code...
-    }
 
     public function exec($value = '')
     {
@@ -51,32 +41,41 @@ class Dbr
                     break;
                 case 'exec':
                     break;
-                case 'table':
-                    self::$opt['table']=array_shift($args);
+                case 'table' && $table =array_shift($args):
+                    self::$opt['table'] = $table;
                     break;
                 default:
+                    // wlog(\Co::getCid());
+                    // return;
+                    // exit(22);
+                    // throw new \RuntimeException(__FILE__, __LINE__);
                     break;
             }
             // print_r(['static',$method, $args]);
             return new self($args);
         } catch (\Swoole\ExitException $e) {
             print_r($e);
+
         }
     }
 
     public function __call($method, $args)
     {
         try {
-            
-            $where = self::$opt['where']??'';
             wlog('call '.$method);
             switch ($method) {
+                //聚合查询
+                case 'max':
+                case 'min':
+                case 'count':
+                case 'sum':
+                case 'avg':
+                    return $this->gather($method,...$args);
                 case 'where':
-                    self::$opt['where'] = $args;
-                    return $this;
+                    $this->_where(...$args);
+                case 'cols':
                 case 'field':
-                    self::$opt['cols'] = $args;
-                    return $this;
+                    $this->_field(...$args);
                 case 'insert':
                     self::$opt['value'] = $args;
                     return $this;
@@ -90,23 +89,11 @@ class Dbr
                     self::$opt['value'] = $args;
                     return $this;
                 case 'find':
-                    self::$opt['value'] = $args;
+                    $this->_where(...$args);
+                    self::$opt['sql']= "SELECT ".self::$opt['field']." FROM ".self::$opt['table']." " . $this->_parseWhere() . " LIMIT 1";
+                    // wlog($this->sql);
                     return $this;
-
-                //聚合查询
-                case 'max':
-                case 'min':
-                case 'count':
-                case 'sum':
-                case 'avg':
-                    $col = $method == 'count' ? '*' : array_shift($args);
-                    $table = self::$opt['table']??'';
-                    $act = strtoupper($method);
-                    $sql = "SELECT $act($col) AS $method FROM $table LIMIT 1;";
-                    wlog($sql);
-                    return $this;
-
-                case 'orderby':
+                case 'order':
                     self::$opt['value'] = $args;
                     return $this;
                 case 'limit':
@@ -115,19 +102,111 @@ class Dbr
                 case 'join':
                     self::$opt['value'] = $args;
                     return $this;
-                case 'table':
-                    self::$opt['table'] = array_shift($args);
-
-                    return $this;
 
                 default:
-                    return $this;
+                    return ;
                     break;
             }
             // print_r(['call',$method, $args]);
         } catch (\Swoole\ExitException $e) {
             print_r($e);
         }
+    }
+
+    public function field($cols=null)
+    {
+        if ($cols) {
+            self::$opt['field'] = is_array($cols)?implode(',',$cols):$cols;
+        }
+        return $this;
+    }
+
+    /**
+     * 条件解析
+     * @Author   Wayren
+     * @DateTime 2022-02-09T14:06:59+0800
+     * @param    string                   $k [description]
+     * @param    [type]                   $s [description]
+     * @param    [type]                   $v [description]
+     * @return   [type]                      [description]
+     */
+    private function _where($k = '', $s = null, $v = null)
+    {
+        if (empty($k)) {
+            return $this;
+        }
+        //解析条件数组
+        if (is_array($k)) {
+            foreach ($k as $key => $v) {
+
+                if (!is_numeric($key)) {
+                    $this->_parseWhere([$key, $v]);
+                    continue;
+                }
+                $this->_parseWhere(is_string($v) ? [$v] : $v);
+            }
+            return $this;
+        }
+        //解析单个条件
+        $v == null ? ($s == null ? $this->_parseWhere([$k]) : $this->_parseWhere([$k, $s])) : $this->_parseWhere([$k, $s, $v]);
+        return $this;
+    }
+
+    /**
+     * 解析条件
+     * @Author   Wayren
+     * @DateTime 2022-02-09T12:05:15+0800
+     * @param    [type]                   $v [description]
+     * @return   [type]                      [description]
+     */
+    private function _parseWhere($v = null)
+    {
+        //生成SQL语句
+        if ($v == null) {
+            if (self::$opt['where']) {
+                return ' WHERE ' . implode(' AND ', self::$opt['where']);
+            }
+            return '';
+        }
+        //解析条件语句
+        $len = count($v);
+        switch ($len) {
+            case 1:
+                self::$opt['where'][] = $v[0];
+                break;
+            case 2:
+                self::$opt['where'][] = '`'.$v[0] . '` = \'' . $v[1] . '\'';
+                break;
+            case 3:
+                switch (strtolower($v[1])) {
+                    case 'like':
+                        self::$opt['where'][] = $v[0] . ' LIKE \'%' . $v[2] . '%\'';
+                        break;
+                    case 'in':
+                    case 'not in':
+                        if (!is_array($v[2])) {
+                            return;
+                        }
+                        self::$opt['where'][] = $v[0] . ' ' . strtoupper($v[1]) . ' (\'' . implode('\',\'', $v[2]) . '\')';
+                        break;
+                    default:
+                        self::$opt['where'][] = $v[0] . ' ' . $v[1] . ' \'' . $v[2] . '\'';
+                        break;
+                }
+                break;
+        }
+    }
+
+    private function gather($method,$col='*')
+    {
+        if (!self::$opt['table']) {
+            return null;
+        }
+        $table = self::$opt['table']??'';
+        $act = strtoupper($method);
+        $sql = "SELECT $act($col) AS $method FROM $table".$this->_parseWhere()." LIMIT 1;";
+        wlog($sql);
+        return 2;
     }
 
 }

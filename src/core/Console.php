@@ -113,7 +113,7 @@ class Console
                             wlog('缺少动作');
                             return;
                         }
-                        
+
                         $res = lim_tcp($remote, ['token' => APP::token(), 'action' => $action]);
                         wlog($res);
                         break;
@@ -144,10 +144,16 @@ class Console
 
         //运行函数
         if ($fn = $o['F'] ?? null) {
+            // run(function(){
+
+            // });
             try {
                 Configer::init();
+                // $fn(...$argv);
                 // print_r(get_included_files());
                 run(fn() => $fn(...$argv));
+            } catch (\Error $e) {
+                var_dump($e);
             } catch (\Swoole\ExitException $e) {
                 print_r($e);
             }
@@ -229,27 +235,26 @@ class Console
         wlog($action);
     }
 
-    public function server($value='')
+    public function server($value = '')
     {
         // code...
     }
 
-    public function remote($value='')
+    public function remote($value = '')
     {
         // code...
     }
 
-    public function git($value='')
+    public function git($value = '')
     {
         // code...
     }
 
-    public function fn($value='')
-    {
+    public function fn($value = '') {
         // code...
     }
 
-    public function obj($value='')
+    public function obj($value = '')
     {
         // code...
     }
