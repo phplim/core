@@ -52,10 +52,12 @@ class Server
             'enable_static_handler' => true,
         ];
 
-        self::$server = new \Swoole\WebSocket\Server('0.0.0.0', (int) APP_HW_PORT);
+        $port =(int) APP_PORT;
+
+        self::$server = new \Swoole\WebSocket\Server('0.0.0.0', $port);
         $app          = new App();
         self::$server->set($config);
-        self::$server->on('start', fn() => cli_set_process_title(APP_NAME . '-Master'));
+        self::$server->on('start', fn() => cli_set_process_title(APP_NAME.'-'.APP_ENV . '-Master'));
         self::$server->on('managerstart', ['\lim\Server', 'managerstart']);
         self::$server->on('WorkerStart', ['\lim\Server', 'WorkerStart']);
         // self::$server->on('WorkerStop', fn() => '');
@@ -69,7 +71,7 @@ class Server
         self::$server->on('close', fn() => '');
         self::$server->on('request', [$app, 'request']);
 
-        $tcp = self::$server->listen("0.0.0.0", APP_HW_PORT - 1, SWOOLE_SOCK_TCP);
+        $tcp = self::$server->listen("0.0.0.0", $port - 1, SWOOLE_SOCK_TCP);
         $tcp->set([]);
         $tcp->on('receive', function ($server, $fd, $reactor_id, $data) {
 
@@ -133,7 +135,7 @@ class Server
 
     public static function managerstart($server)
     {
-        cli_set_process_title(APP_NAME . '-Manager');
+        cli_set_process_title(APP_NAME.'-'.APP_ENV . '-Manager');
         self::loadTasker();
         // self::loadTasker();
         wlog("服务启动成功");
@@ -165,9 +167,9 @@ class Server
                     // print_r(get_defined_constants(true)['user']);
                     // print_r(get_included_files());
                 }
-                cli_set_process_title(APP_NAME . '-Tasker');
+                cli_set_process_title(APP_NAME.'-'.APP_ENV . '-Tasker');
             } else {
-                cli_set_process_title(APP_NAME . '-Worker');
+                cli_set_process_title(APP_NAME.'-'.APP_ENV . '-Worker');
             }
         } catch (\Swoole\ExitException $e) {
             wlog($e->getStatus());

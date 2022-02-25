@@ -59,15 +59,14 @@ class Configer
                     define($k, $v);
                 }
             }
-        } else {
-            if (!defined('APP_ENV')) {
-                define('APP_ENV', 'pro');
-            }
+        }
 
-            if (!defined('DATA_CRYPT')) {
-                define('DATA_CRYPT', 0);
-            }
+        if (!defined('APP_ENV')) {
+            define('APP_ENV', 'pro');
+        }
 
+        if (!defined('DATA_CRYPT')) {
+            define('DATA_CRYPT', 0);
         }
 
         $f = ROOT . 'app.const';
@@ -80,8 +79,8 @@ class Configer
             }
         }
 
-        if (!is_file('/tmp/' . APP_NAME . '_app.db') &&APP_ENV=='dev') {
-            copy(APP . 'config/app.db','/tmp/' . APP_NAME . '_app.db');
+        if (!is_file('/tmp/' . APP_NAME . APP_ENV.'.db')) {
+            copy(APP . 'config/app.db', '/tmp/' . APP_NAME . APP_ENV.'.db');
             wlog('复制本地配置文件');
         }
         // wlog('配置常量');
@@ -237,17 +236,13 @@ class Configer
                 $v['value'] = json_decode($v['value'], true);
             }
 
-            if ($v['type'] == 1 && !defined($v['key'])) {
-                define($v['key'], $v['value']);
-            }
+            // if ($v['type'] == 1 && !defined($v['key'])) {
+            //     define($v['key'], $v['value']);
+            // }
 
             if ($v['type'] == 2 && !isset(self::$data[$v['key']])) {
                 self::$data[$v['key']] = $v['value'];
             }
-        }
-
-        if (!defined('DATA_CRYPT')) {
-            define('DATA_CRYPT', 0);
         }
 
         //加载API路由
@@ -262,7 +257,7 @@ class Configer
             //     $v['name'],
             //     $v['speed']
             // ];
-            $route[strtolower($v['url'])]=$v;
+            $route[strtolower($v['url'])] = $v;
         }
 
         //加载角色
@@ -270,10 +265,10 @@ class Configer
         foreach ($roler as $k => $v) {
             $role[$v['id']] = json_decode($v['auth'], true);
         }
-        self::$data['route'] = $route??[];
+        self::$data['route'] = $route ?? [];
         // self::$data['apis'] = $apis??[];
         // wlog('配置路由');
-        self::$data['role'] = $role??[];
+        self::$data['role'] = $role ?? [];
         // wlog('配置角色');
     }
 

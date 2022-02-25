@@ -142,8 +142,8 @@ class Configer
 
     public function sync()
     {
-        if (is_file('/tmp/'.APP_NAME.'_app.db')) {
-            copy('/tmp/'.APP_NAME.'_app.db', APP.'config/app.db');
+        if (is_file('/tmp/'.APP_NAME . APP_ENV.'.db')) {
+            copy('/tmp/'.APP_NAME . APP_ENV.'.db', APP.'config/app.db');
         }
         \lim\Server::reload();
     }

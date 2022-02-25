@@ -113,7 +113,7 @@ class Console
                             wlog('缺少动作');
                             return;
                         }
-                        $res = lim_tcp($host . ':' . (APP_HW_PORT - 1), ['token' => APP::token(), 'action' => $action]);
+                        $res = lim_tcp($host . ':' . (APP_PORT - 1), ['token' => APP::token(), 'action' => $action]);
                         wlog($res);
                         break;
                     case 'push':
@@ -194,30 +194,30 @@ class Console
 
         lim_mkdir('logs,app,app/api,app/task,app/config,app/config/rule,public', ROOT);
 
-        if (!is_file(ROOT . 'app/api/Api.php')) {
-            copy(ROOT . 'vendor/phplim/core/src/source/Api.php', ROOT . 'app/api/Api.php');
-            wlog('create app/api/Api.php');
-        }
+        // if (!is_file(ROOT . 'app/api/Api.php')) {
+        //     copy(ROOT . 'vendor/phplim/core/src/source/Api.php', ROOT . 'app/api/Api.php');
+        //     wlog('create app/api/Api.php');
+        // }
 
-        if (!is_file(ROOT . 'app/config/rule/demo.php')) {
-            copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/config/rule/demo.php');
-            wlog('create app/config/rule/demo.php');
-        }
+        // if (!is_file(ROOT . 'app/config/rule/demo.php')) {
+        //     copy(ROOT . 'vendor/phplim/core/src/source/demorule.php', ROOT . 'app/config/rule/demo.php');
+        //     wlog('create app/config/rule/demo.php');
+        // }
 
-        if (!is_file(ROOT . 'app/function.php')) {
-            copy(ROOT . 'vendor/phplim/core/src/source/function.php', ROOT . 'app/function.php');
-            wlog('create app/function.php');
-        }
+        // if (!is_file(ROOT . 'app/function.php')) {
+        //     copy(ROOT . 'vendor/phplim/core/src/source/function.php', ROOT . 'app/function.php');
+        //     wlog('create app/function.php');
+        // }
 
-        if (!is_file(ROOT . 'app/Hook.php')) {
-            copy(ROOT . 'vendor/phplim/core/src/source/Hook.php', ROOT . 'app/Hook.php');
-            wlog('create app/Hook.php');
-        }
+        // if (!is_file(ROOT . 'app/Hook.php')) {
+        //     copy(ROOT . 'vendor/phplim/core/src/source/Hook.php', ROOT . 'app/Hook.php');
+        //     wlog('create app/Hook.php');
+        // }
 
-        if (!is_file(ROOT . 'public/index.php')) {
-            copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
-            wlog('create public/index.php');
-        }
+        // if (!is_file(ROOT . 'public/index.php')) {
+        //     copy(ROOT . 'vendor/phplim/core/src/source/index.php', ROOT . 'public/index.php');
+        //     wlog('create public/index.php');
+        // }
     }
 
     public function table($action = '')
