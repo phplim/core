@@ -8,11 +8,12 @@ namespace lim;
 class Dbr
 {
 
-    public static $opt =  [
-        'database'=>'default',
-        'table'=>null,
-        'where'=>[],
-        'field'=>'*'
+    public static $opt = [
+        'database' => 'default',
+        'table'    => null,
+        'where'    => [],
+        'field'    => '*',
+        'limit'    => '',
     ];
 
     public function __construct()
@@ -25,7 +26,6 @@ class Dbr
         // code...
     }
 
-
     public function exec($value = '')
     {
         // code...
@@ -34,21 +34,17 @@ class Dbr
     public static function __callStatic($method, $args)
     {
         try {
-            wlog('static '.$method);
+            wlog('static ' . $method);
             switch ($method) {
                 case 'use':
                     wlog('use');
                     break;
                 case 'exec':
                     break;
-                case 'table' && $table =array_shift($args):
-                    self::$opt['table'] = $table;
+                case 'table' && $table = array_shift($args):
+                    self::$opt['table']    = $table;
                     break;
                 default:
-                    // wlog(\Co::getCid());
-                    // return;
-                    // exit(22);
-                    // throw new \RuntimeException(__FILE__, __LINE__);
                     break;
             }
             // print_r(['static',$method, $args]);
@@ -62,7 +58,7 @@ class Dbr
     public function __call($method, $args)
     {
         try {
-            wlog('call '.$method);
+            wlog('call ' . $method);
             switch ($method) {
                 //聚合查询
                 case 'max':
@@ -70,12 +66,17 @@ class Dbr
                 case 'count':
                 case 'sum':
                 case 'avg':
-                    return $this->gather($method,...$args);
-                case 'where':
-                    $this->_where(...$args);
+                    return $this->gather($method, ...$args);
                 case 'cols':
                 case 'field':
                     $this->_field(...$args);
+
+                case 'order':
+                    self::$opt['value'] = $args;
+                    return $this;
+                case 'join':
+                    self::$opt['value'] = $args;
+                    return $this;
                 case 'insert':
                     self::$opt['value'] = $args;
                     return $this;
@@ -86,25 +87,15 @@ class Dbr
                     self::$opt['value'] = $args;
                     return $this;
                 case 'select':
-                    self::$opt['value'] = $args;
-                    return $this;
+                    $this->where(...$args);
+                    self::$opt['sql'] = "SELECT " . self::$opt['field'] . " FROM " . self::$opt['table'] . " " . $this->_parseWhere() . self::$opt['limit'];
+                    break;
                 case 'find':
-                    $this->_where(...$args);
-                    self::$opt['sql']= "SELECT ".self::$opt['field']." FROM ".self::$opt['table']." " . $this->_parseWhere() . " LIMIT 1";
+                    $this->where(...$args);
+                    self::$opt['sql'] = "SELECT " . self::$opt['field'] . " FROM " . self::$opt['table'] . " " . $this->_parseWhere() . " LIMIT 1";          
                     // wlog($this->sql);
                     return $this;
-                case 'order':
-                    self::$opt['value'] = $args;
-                    return $this;
-                case 'limit':
-                    self::$opt['value'] = $args;
-                    return $this;
-                case 'join':
-                    self::$opt['value'] = $args;
-                    return $this;
-
                 default:
-                    return ;
                     break;
             }
             // print_r(['call',$method, $args]);
@@ -113,10 +104,26 @@ class Dbr
         }
     }
 
-    public function field($cols=null)
+    public function limit($start = null, $num = null)
+    {
+
+        if ($start) {
+            $limit = " LIMIT " . $start;
+        }
+
+        if ($num) {
+            $limit .= ' , ' . $num;
+        }
+
+        self::$opt['limit'] = $limit;
+
+        return $this;
+    }
+
+    public function field($cols = null)
     {
         if ($cols) {
-            self::$opt['field'] = is_array($cols)?implode(',',$cols):$cols;
+            self::$opt['field'] = is_array($cols) ? implode(',', $cols) : $cols;
         }
         return $this;
     }
@@ -130,7 +137,7 @@ class Dbr
      * @param    [type]                   $v [description]
      * @return   [type]                      [description]
      */
-    private function _where($k = '', $s = null, $v = null)
+    public function where($k = '', $s = null, $v = null)
     {
         if (empty($k)) {
             return $this;
@@ -175,7 +182,7 @@ class Dbr
                 self::$opt['where'][] = $v[0];
                 break;
             case 2:
-                self::$opt['where'][] = '`'.$v[0] . '` = \'' . $v[1] . '\'';
+                self::$opt['where'][] = '`' . $v[0] . '` = \'' . $v[1] . '\'';
                 break;
             case 3:
                 switch (strtolower($v[1])) {
@@ -197,14 +204,14 @@ class Dbr
         }
     }
 
-    private function gather($method,$col='*')
+    private function gather($method, $col = '*')
     {
         if (!self::$opt['table']) {
             return null;
         }
-        $table = self::$opt['table']??'';
-        $act = strtoupper($method);
-        $sql = "SELECT $act($col) AS $method FROM $table".$this->_parseWhere()." LIMIT 1;";
+        $table = self::$opt['table'] ?? '';
+        $act   = strtoupper($method);
+        $sql   = "SELECT $act($col) AS $method FROM $table" . $this->_parseWhere() . " LIMIT 1;";
         wlog($sql);
         return 2;
     }
