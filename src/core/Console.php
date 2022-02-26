@@ -179,7 +179,7 @@ class Console
                     //清理缓存
                     run(function () use ($o) {
                         \swoole\timer::clearAll();
-                        $pid = file_get_contents('/var/log/' . APP_NAME . '.pid');
+                        $pid = file_get_contents('/var/log/' . APP_NAME.APP_ENV . '.pid');
                         $num = $o['S'] == 'stop' ? 15 : 10;
                         $n   = [15 => '停止', 10 => '重启'];
                         $ret = \co::exec('kill -' . $num . ' ' . $pid);
