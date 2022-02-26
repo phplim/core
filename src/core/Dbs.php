@@ -356,7 +356,7 @@ class dbsQuery
             return $this;
         }
         //解析单个条件
-        $v == null ? ($s == null ? $this->parseWhere([$k]) : $this->parseWhere([$k, $s])) : $this->parseWhere([$k, $s, $v]);
+        $v === null ? ($s == null ? $this->parseWhere([$k]) : $this->parseWhere([$k, $s])) : $this->parseWhere([$k, $s, $v]);
         return $this;
     }
 
@@ -421,7 +421,10 @@ class dbsQuery
         foreach ($data as $k => $v) {
             $value = [];
             foreach ($v as $kk => $vv) {
-
+                if ($vv===null) {
+                    $value[] = "NULL";
+                    continue;
+                }
                 if (is_array($vv)) {
                     $vv = json_encode($vv, 256);
                 }
