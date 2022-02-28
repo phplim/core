@@ -182,7 +182,7 @@ class Console
                         $pid = file_get_contents('/var/log/' . APP_NAME.APP_ENV . '.pid');
                         $num = $o['S'] == 'stop' ? 15 : 10;
                         $n   = [15 => '停止', 10 => '重启'];
-                        $ret = \co::exec('kill -' . $num . ' ' . $pid);
+                        $ret = \co::exec('sudo kill -' . $num . ' ' . $pid);
                         if ($ret['code'] === 0) {
                             wlog("服务" . $n[$num] . "成功");
                         }

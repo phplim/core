@@ -262,8 +262,7 @@ class App
             }
             $req->all = array_merge($req->all, $json ?? []);
             self::$ext  = $req;
-            // print_r(self::$ext);
-            // \app\Route::register(self::$ext);
+  
             $ret        = (new $class($req))->auth()->before()->$method();
             $response->end($ret);
 
