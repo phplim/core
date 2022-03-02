@@ -33,7 +33,7 @@ class HttpHandle
     public function get($value = '',array $options = null, array $headers = null, array $cookies = null)
     {
         $res       = get($value,$options,$headers,$cookies);
-        print_r($res);
+        // print_r($res);
         $this->data = $res->getBody();
         return $this;
     }
@@ -41,7 +41,7 @@ class HttpHandle
     public function post($url = '', $data = [], $header = [],array $cookies = null)
     {
         $res        = post($url, $data, [], $header,$cookies);
-         print_r($res);
+         // print_r($res);
         $this->data = $res->getBody();
         return $this;
     }
