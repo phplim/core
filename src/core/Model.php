@@ -29,7 +29,7 @@ class Model
 
             $rule = config('rule');
             $arr  = explode('.', strtolower((string) $res->rule));
-
+            
             foreach ($arr as $k => $v) {
                 if (!isset($rule[$v])) {
                     return null;

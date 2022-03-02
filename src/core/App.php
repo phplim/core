@@ -262,7 +262,6 @@ class App
             }
             $req->all = array_merge($req->all, $json ?? []);
             self::$ext  = $req;
-  
             $ret        = (new $class($req))->auth()->before()->$method();
             $response->end($ret);
 

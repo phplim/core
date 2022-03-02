@@ -30,16 +30,18 @@ class HttpHandle
         // code...
     }
 
-    public function get($value = '')
+    public function get($value = '',array $options = null, array $headers = null, array $cookies = null)
     {
-        $data       = get($value);
+        $res       = get($value,$options,$headers,$cookies);
+        print_r($res);
         $this->data = $res->getBody();
         return $this;
     }
 
-    public function post($url = '', $data = [], $header = [])
+    public function post($url = '', $data = [], $header = [],array $cookies = null)
     {
-        $res        = post($url, $data, [], $header);
+        $res        = post($url, $data, [], $header,$cookies);
+         print_r($res);
         $this->data = $res->getBody();
         return $this;
     }
