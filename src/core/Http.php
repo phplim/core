@@ -23,7 +23,7 @@ class Http
  */
 class HttpHandle
 {
-    public $data = null;
+    public $data = null,$request;
 
     public function __construct()
     {
@@ -32,17 +32,17 @@ class HttpHandle
 
     public function get($value = '',array $options = null, array $headers = null, array $cookies = null)
     {
-        $res       = get($value,$options,$headers,$cookies);
-        // print_r($res);
-        $this->data = $res->getBody();
+        $this->request       = get($value,$options,$headers,$cookies);
+  
+        $this->data = $this->request->getBody();
         return $this;
     }
 
     public function post($url = '', $data = [], $header = [],array $cookies = null)
     {
-        $res        = post($url, $data, [], $header,$cookies);
+        $this->request        = post($url, $data, [], $header,$cookies);
          // print_r($res);
-        $this->data = $res->getBody();
+        $this->data = $this->request->getBody();
         return $this;
     }
 
