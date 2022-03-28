@@ -84,8 +84,10 @@ class Console
                 // $this->$act($argv);
                 switch ($act) {
                     case 'build':
-                        $sync = 'cp -r ' . dirname(__DIR__) . ' /code/php/core/ && cd /code/php/core/ && git add . && git commit -m \'' . time() . '\' && git push';
+                    $to = dirname(explode('/vendor',__DIR__)[0]).'/core/';
+                        $sync = 'cp -r ' . dirname(__DIR__) . ' '.$to.' && cd '.$to.' && sudo git add . && sudo git commit -m \'' . time() . '\' && sudo git push';
                         shell_exec($sync);
+                        // wlog($sync);
                         wlog('composer sync');
                         break;
                     case 'clear':
@@ -134,6 +136,14 @@ class Console
                         break;
                     case 'table':
                         $this->table(...$argv);
+                        break;
+                    case 'sync':
+                        if (!$branch = array_shift($argv)) {
+                            echo 'hello';
+                            return;
+                        }
+                        $script = "sudo git checkout {$branch} && sudo git merge dev && sudo git push origin {$branch} && sudo git checkout dev;";
+                        wlog(shell_exec($script));
                         break;
                     default:
                         echo 'hello';
