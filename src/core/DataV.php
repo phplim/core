@@ -16,14 +16,20 @@ class DataV
 
     public function toArray($cols = '')
     {
+        if (!$this->data) {
+            return $this;
+        }
+
         if (empty($cols)) {
             $this->data = json_decode($this->data, true);
         } else {
+
             if ($cols=='*') {
                 $col = array_keys($this->data);
             } else{
                 $col = explode(',', $cols);
             }
+
             foreach ($this->data as $k => $v) {
                 if (in_array($k, $col)) {
                     $this->data[$k] = json_decode($v, true);

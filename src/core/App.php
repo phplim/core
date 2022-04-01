@@ -110,19 +110,19 @@ class App
                         return;
                     }
 
-                    $req         = (object) Helper::parseRequest($info['action']);
+                    $req           = (object) Helper::parseRequest($info['action']);
                     $req->socketio = 0;
-                    $req->all = $info['data'];
-                    $req->data = $info['data'];
-                    $method      = $req->method;
+                    $req->all      = $info['data'];
+                    $req->data     = $info['data'];
+                    $method        = $req->method;
                     $req->receive??=$method;
                     $req->header['token'] = $info['token'] ?? '';
-                    $req->fd     = $frame->fd;
-                    $class       = $req->class;
+                    $req->fd              = $frame->fd;
+                    $class                = $req->class;
 
                     break;
             }
-            self::$ext  = $req;
+            self::$ext = $req;
             (new $class($req))->auth()->check()->before()->$method();
 
         } catch (\Swoole\ExitException $e) {
@@ -222,8 +222,6 @@ class App
         return Server::$cache->get($k);
     }
 
-
-
     /**
      * Swoole请求
      * @Author   Wayren
@@ -249,9 +247,9 @@ class App
             $class       = $req->class;
             $method      = $req->method;
             $req->header = $request->header;
-            $req->files = $request->files;
-            $req->all = array_merge($request->get ?? [], $request->post ?? []);
-            $json = [];
+            $req->files  = $request->files;
+            $req->all    = array_merge($request->get ?? [], $request->post ?? []);
+            $json        = [];
             if ($tmp = $request->getContent()) {
                 if (DATA_CRYPT) {
                     $json = self::crypt($tmp, true);
@@ -260,9 +258,9 @@ class App
                     $json = json_decode($tmp, true);
                 }
             }
-            $req->all = array_merge($req->all, $json ?? []);
-            self::$ext  = $req;
-            $ret        = (new $class($req))->auth()->before()->$method();
+            $req->all  = array_merge($req->all, $json ?? []);
+            self::$ext = $req;
+            $ret       = (new $class($req))->auth()->before()->$method();
             $response->end($ret);
 
         } catch (\Swoole\ExitException $e) {
@@ -344,7 +342,7 @@ class App
             // return null;
         }
 
-        return base64_encode(openssl_encrypt(time() . '|' . (is_array($v) ?json_encode($v,256) : $v), TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
+        return base64_encode(openssl_encrypt(time() . '|' . (is_array($v) ? json_encode($v, 256) : $v), TOKEN_ALGO, TOKEN_KEY, 1, TOKEN_IV));
     }
 
     public static function crypt($data = '', $de = false)

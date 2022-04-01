@@ -2,8 +2,8 @@
 declare (strict_types = 1);
 namespace lim;
 
-use function Swoole\Coroutine\Http\get;
-use function Swoole\Coroutine\Http\post;
+use function \Swoole\Coroutine\Http\get;
+use function \Swoole\Coroutine\Http\post;
 
 class Http
 {
